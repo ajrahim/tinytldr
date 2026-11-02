@@ -1,0 +1,27 @@
+{
+  "venue": "TINYTLDR TECHNICAL REPORT · 2026",
+  "paperTitle": "Deterministic Sub-Frame Web Animations for Headless Social Video Synthesis",
+  "authors": "AJ Rahim et al. · Open Source Media Systems",
+  "coreClaim": "Stepping the W3C Web Animations API frame-by-frame in headless Chromium eliminates real-time jitter and produces bit-identical MP4s.",
+  "problem": "Real-time screen recording of browser animations suffers from frame drops, GPU scheduling variance, and non-deterministic timestamps in CI.",
+  "method": "Pause all document.getAnimations() timelines and seek currentTime to exact (frameIndex / fps) * 1000ms ticks before piping raw PNG frames to FFmpeg.",
+  "results": [
+    {
+      "metric": "100%",
+      "detail": "SHA-256 frame-hash identity across repeated 150-frame 30fps renders"
+    },
+    {
+      "metric": "3.44s",
+      "detail": "Wall-clock render time for a 5-second 1080×1080 H.264 MP4 on consumer hardware"
+    },
+    {
+      "metric": "0 KB",
+      "detail": "External network requests required when using bundled OFL WOFF2 fonts"
+    }
+  ],
+  "takeaways": [
+    "Decouple animation time from wall-clock time whenever rendering video in headless browsers.",
+    "Use CSS transforms and opacity with explicit duration tokens so every timeline is inspectable.",
+    "Validate text overflow and WCAG contrast before committing to a multi-second video encode."
+  ]
+}

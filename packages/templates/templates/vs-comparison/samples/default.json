@@ -1,0 +1,18 @@
+{
+  "title": "Prompt-to-Image Diffusion vs. Deterministic HTML-to-Post",
+  "leftTitle": "Generic Image Models",
+  "leftPoints": [
+    "Garbled kerning and misspelled technical code terms",
+    "Requires paid cloud API keys and per-image credits",
+    "Cannot export multi-page PDFs or crisp 30fps MP4s",
+    "Different random output on every single run"
+  ],
+  "rightTitle": "tinytldr Engine",
+  "rightPoints": [
+    "Crisp OFL typography and exact monospace code blocks",
+    "Runs 100% locally via MCP with zero LLM API calls",
+    "Exports PNG, JPG, WebP, LinkedIn PDF & H.264 MP4",
+    "100% SHA-256 deterministic across every run"
+  ],
+  "verdict": "Use your coding agent for distillation—and tinytldr for deterministic rendering."
+}

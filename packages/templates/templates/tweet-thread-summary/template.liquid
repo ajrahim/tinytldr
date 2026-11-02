@@ -1,0 +1,41 @@
+<div class="thread-card">
+  <div class="thread-frame">
+    <header class="thread-header">
+      <div class="author-row">
+        <div class="monogram" aria-hidden="true">{{ author | initials }}</div>
+        <div class="author-info">
+          <div class="author-name" data-tt-slot="author">{{ author }}</div>
+          {% if handle and handle != "" %}
+            <div class="author-handle" data-tt-slot="handle">{{ handle }}</div>
+          {% endif %}
+        </div>
+      </div>
+      {% if badge and badge != "" %}
+        <span class="thread-badge" data-tt-slot="badge">{{ badge }}</span>
+      {% endif %}
+    </header>
+
+    <h1
+      class="thread-headline"
+      data-tt-slot="headline"
+      data-tt-autofit="true"
+      data-tt-min-font-px="26"
+      data-tt-max-font-px="40"
+      data-tt-max-lines="2"
+    >{{ headline }}</h1>
+
+    <ol class="points-list" data-tt-slot="points">
+      {% for pt in points %}
+        <li class="point-row">
+          <span class="point-index" aria-hidden="true">0{{ forloop.index }}</span>
+          <span class="point-text">{{ pt }}</span>
+        </li>
+      {% endfor %}
+    </ol>
+
+    <footer class="thread-footer">
+      <span data-tt-slot="footer">{{ footer }}</span>
+      <span class="brand">tinytldr.com</span>
+    </footer>
+  </div>
+</div>

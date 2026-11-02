@@ -1,0 +1,128 @@
+{
+  "id": "tweet-thread-summary",
+  "name": "Thread & Key Takeaways Summary",
+  "version": "1.0.0",
+  "kind": "static",
+  "description": "Distills a long thread, article, or RFC into a single scannable card with author header, bold hook headline, and 3-5 numbered takeaways.",
+  "distillationHint": "Summarize the thread into a punchy 1-line hook (<= 85 chars) and 3-5 numbered takeaways (<= 95 chars each). Keep every bullet concrete and action-oriented.",
+  "tags": ["thread", "summary", "tldr", "bullets", "x", "linkedin", "instagram"],
+  "defaultSize": "square",
+  "supportedSizes": ["square", "portrait", "grid-3x4", "x", "linkedin", "og", "story"],
+  "defaultTheme": "obsidian",
+  "themes": {
+    "obsidian": {
+      "name": "Obsidian Blue",
+      "background": "#080c14",
+      "surface": "#0f172a",
+      "surfaceElevated": "#1e293b",
+      "textPrimary": "#f8fafc",
+      "textSecondary": "#cbd5e1",
+      "textMuted": "#94a3b8",
+      "accent": "#38bdf8",
+      "accentSecondary": "#818cf8",
+      "border": "#1e293b",
+      "badgeBg": "#0c4a6e",
+      "badgeText": "#7dd3fc"
+    },
+    "warm": {
+      "name": "Editorial Cream",
+      "background": "#faf8f5",
+      "surface": "#ffffff",
+      "surfaceElevated": "#f4efe6",
+      "textPrimary": "#18181b",
+      "textSecondary": "#3f3f46",
+      "textMuted": "#52525b",
+      "accent": "#ea580c",
+      "accentSecondary": "#d97706",
+      "border": "#e4ded3",
+      "badgeBg": "#ffedd5",
+      "badgeText": "#9a3412"
+    },
+    "violet": {
+      "name": "Deep Violet",
+      "background": "#0d091a",
+      "surface": "#17112b",
+      "surfaceElevated": "#241b42",
+      "textPrimary": "#f5f3ff",
+      "textSecondary": "#ddd6fe",
+      "textMuted": "#a78bfa",
+      "accent": "#c084fc",
+      "accentSecondary": "#818cf8",
+      "border": "#2e2354",
+      "badgeBg": "#2e1065",
+      "badgeText": "#d8b4fe"
+    }
+  },
+  "slots": {
+    "author": {
+      "type": "string",
+      "label": "Author Name",
+      "description": "Thread author or source name.",
+      "required": true,
+      "maxLength": 48
+    },
+    "handle": {
+      "type": "string",
+      "label": "Author Handle",
+      "description": "Handle or publication domain (e.g., @ajrahim).",
+      "required": false,
+      "maxLength": 40,
+      "defaultValue": "@tinytldr"
+    },
+    "badge": {
+      "type": "string",
+      "label": "Header Pill",
+      "description": "Pill badge in the top-right corner.",
+      "required": false,
+      "maxLength": 24,
+      "defaultValue": "THREAD TL;DR"
+    },
+    "headline": {
+      "type": "string",
+      "label": "Hook Headline",
+      "description": "Main takeaway headline summarizing the thread.",
+      "required": true,
+      "maxLength": 120,
+      "recommendedMaxLength": 85,
+      "maxLines": 2,
+      "autofit": {
+        "minFontPx": 26,
+        "maxFontPx": 42,
+        "maxLines": 2
+      }
+    },
+    "points": {
+      "type": "string[]",
+      "label": "Numbered Takeaways",
+      "description": "3 to 5 distilled bullet takeaways.",
+      "required": true,
+      "minItems": 2,
+      "maxItems": 5,
+      "maxLength": 120,
+      "recommendedMaxLength": 95
+    },
+    "footer": {
+      "type": "string",
+      "label": "Footer Note",
+      "description": "Optional footer CTA or source note.",
+      "required": false,
+      "maxLength": 64,
+      "defaultValue": "Distilled with tinytldr · Zero-LLM Deterministic Renderer"
+    }
+  },
+  "sampleData": {
+    "author": "AJ Rahim",
+    "handle": "@ajrahim",
+    "badge": "ARCHITECTURE TL;DR",
+    "headline": "How tinytldr turns coding agents into deterministic social studios:",
+    "points": [
+      "Your coding agent already holds the full context—no second LLM API key needed.",
+      "LiquidJS templates + CSS custom properties adapt to all 10 social size presets.",
+      "Bundled OFL fonts (Inter, Fraunces, JetBrains Mono, Space Grotesk) run 100% offline.",
+      "WAAPI timeline seeking + FFmpeg image2pipe produces frame-exact H.264 MP4s."
+    ],
+    "footer": "npx tinytldr · MIT Open Source"
+  },
+  "author": "AJ Rahim",
+  "license": "MIT"
+}

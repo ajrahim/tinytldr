@@ -1,0 +1,133 @@
+{
+  "id": "timeline-reveal",
+  "name": "Sequential Timeline Milestone Video",
+  "version": "1.0.0",
+  "kind": "video",
+  "durationMs": 5000,
+  "fps": 30,
+  "description": "Animated 3-4 step chronological milestone or architecture pipeline reveal with a growing vertical progress rail.",
+  "distillationHint": "Summarize a roadmap, incident timeline, or execution pipeline into 3-4 chronological milestones (time/phase tag <= 18 chars, headline <= 48 chars, detail <= 85 chars).",
+  "tags": ["video", "timeline", "roadmap", "changelog", "x", "linkedin", "reels"],
+  "defaultSize": "square",
+  "supportedSizes": ["square", "portrait", "x", "hd", "story"],
+  "defaultTheme": "pulse-dark",
+  "themes": {
+    "pulse-dark": {
+      "name": "Pulse Dark",
+      "background": "#070b14",
+      "surface": "#0f172a",
+      "surfaceElevated": "#1e293b",
+      "textPrimary": "#f8fafc",
+      "textSecondary": "#cbd5e1",
+      "textMuted": "#94a3b8",
+      "accent": "#38bdf8",
+      "accentSecondary": "#34d399",
+      "border": "#1e293b",
+      "badgeBg": "#082f49",
+      "badgeText": "#7dd3fc"
+    },
+    "emerald-flow": {
+      "name": "Emerald Flow",
+      "background": "#04120d",
+      "surface": "#092219",
+      "surfaceElevated": "#113629",
+      "textPrimary": "#ecfdf5",
+      "textSecondary": "#a7f3d0",
+      "textMuted": "#6ee7b7",
+      "accent": "#34d399",
+      "accentSecondary": "#10b981",
+      "border": "#144936",
+      "badgeBg": "#064e3b",
+      "badgeText": "#6ee7b7"
+    }
+  },
+  "slots": {
+    "badge": {
+      "type": "string",
+      "label": "Timeline Badge",
+      "description": "Top pill describing the timeline.",
+      "required": false,
+      "maxLength": 28,
+      "defaultValue": "EXECUTION PIPELINE"
+    },
+    "title": {
+      "type": "string",
+      "label": "Timeline Headline",
+      "description": "Main title above the milestones.",
+      "required": true,
+      "maxLength": 84,
+      "recommendedMaxLength": 62,
+      "maxLines": 2,
+      "autofit": {
+        "minFontPx": 28,
+        "maxFontPx": 42,
+        "maxLines": 2
+      }
+    },
+    "events": {
+      "type": "object[]",
+      "label": "Timeline Milestones",
+      "description": "3 to 4 sequential events revealed along the timeline rail.",
+      "required": true,
+      "minItems": 3,
+      "maxItems": 4,
+      "itemSchema": {
+        "step": {
+          "type": "string",
+          "label": "Time / Phase Tag",
+          "required": true,
+          "maxLength": 20
+        },
+        "headline": {
+          "type": "string",
+          "label": "Milestone Headline",
+          "required": true,
+          "maxLength": 54
+        },
+        "detail": {
+          "type": "string",
+          "label": "Supporting Detail",
+          "required": true,
+          "maxLength": 95
+        }
+      }
+    },
+    "footer": {
+      "type": "string",
+      "label": "Footer Summary",
+      "description": "Bottom caption.",
+      "required": false,
+      "maxLength": 70,
+      "defaultValue": "tinytldr · Deterministic 30fps WAAPI + FFmpeg"
+    }
+  },
+  "sampleData": {
+    "badge": "RENDER PIPELINE",
+    "title": "How tinytldr Encodes a 5s Social Video in 3.4 Seconds",
+    "events": [
+      {
+        "step": "T + 0.0s",
+        "headline": "Compile Liquid + Zod Slot Contract",
+        "detail": "Inject theme tokens and base64 OFL fonts with zero external HTTP calls."
+      },
+      {
+        "step": "T + 0.4s",
+        "headline": "Binary-Search Autofit & WCAG Audit",
+        "detail": "Verify text bounds, contrast ratios, and 9:16 platform safe zones."
+      },
+      {
+        "step": "T + 1.2s",
+        "headline": "Step WAAPI Timelines Frame-by-Frame",
+        "detail": "Pause document.getAnimations() and seek to exact (f / 30) * 1000ms ticks."
+      },
+      {
+        "step": "T + 3.4s",
+        "headline": "Mux H.264 yuv420p MP4 with Faststart",
+        "detail": "Pipe frames directly to FFmpeg for universal X, LinkedIn, and Reels playback."
+      }
+    ],
+    "footer": "100% SHA-256 deterministic across every run"
+  },
+  "author": "AJ Rahim",
+  "license": "MIT"
+}

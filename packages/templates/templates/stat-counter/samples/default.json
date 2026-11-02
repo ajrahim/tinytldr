@@ -1,0 +1,8 @@
+{
+  "badge": "RENDER THROUGHPUT",
+  "metricTarget": "+412%",
+  "label": "Faster Deterministic Frame Stepping vs. Real-Time Capture",
+  "progressPercent": 92,
+  "context": "Stepping Web Animations API timelines directly to exact frame timestamps eliminates real-time wait delays and drops frame variance to 0.0%.",
+  "source": "Source: tinytldr Engine Benchmark · 1080×1080 @ 30fps"
+}

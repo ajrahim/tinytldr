@@ -1,0 +1,36 @@
+<div class="changelog-card">
+  <div class="changelog-frame">
+    <header class="changelog-header">
+      <span class="version-pill" data-tt-slot="version">{{ version }}</span>
+      <span class="release-date" data-tt-slot="releaseDate">{{ releaseDate }}</span>
+    </header>
+
+    <section class="hero-block">
+      <h1
+        class="release-title"
+        data-tt-slot="title"
+        data-tt-autofit="true"
+        data-tt-min-font-px="28"
+        data-tt-max-font-px="44"
+        data-tt-max-lines="2"
+      >{{ title }}</h1>
+      {% if subtitle and subtitle != "" %}
+        <p class="release-subtitle" data-tt-slot="subtitle">{{ subtitle }}</p>
+      {% endif %}
+    </section>
+
+    <ul class="changelog-list" data-tt-slot="items">
+      {% for item in items %}
+        <li class="changelog-item">
+          <span class="check-icon" aria-hidden="true">+</span>
+          <span class="item-text">{{ item }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <footer class="changelog-footer">
+      <code class="cta-code" data-tt-slot="cta">{{ cta }}</code>
+      <span class="footer-brand">tinytldr.com</span>
+    </footer>
+  </div>
+</div>

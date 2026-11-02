@@ -1,0 +1,278 @@
+.ai-composer {
+  position: absolute;
+  z-index: 4;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(720px, calc(100% - 32px));
+  color: var(--ui-text);
+  touch-action: auto;
+}
+.ai-composer > form {
+  position: relative;
+  padding: 16px 16px 10px;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--ui-surface-subtle) 94%, transparent);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px #00000012;
+}
+html.light .ai-composer > form {
+  background: #ffffffeb;
+}
+.composer-prompt-wrap {
+  position: relative;
+}
+.composer-prompt-wrap > textarea {
+  display: block;
+  width: 100%;
+  height: 66px;
+  max-height: 120px;
+  resize: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.composer-prompt-wrap > textarea:focus {
+  outline: none;
+}
+.composer-prompt-wrap > textarea::placeholder {
+  color: var(--ui-text-muted);
+}
+.composer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  margin-top: 12px;
+}
+.composer-scope {
+  flex: 1;
+  min-width: 0;
+  color: var(--ui-text-muted);
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.composer-provider {
+  max-width: 190px;
+  min-width: 62px;
+}
+.composer-provider .dropdown-select-trigger {
+  color: inherit;
+  background: transparent;
+  border-color: transparent;
+  padding: 6px 2px;
+}
+.composer-send {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--ui-pill-bg);
+  color: var(--ui-pill-text);
+}
+.composer-add-menu {
+  flex-shrink: 0;
+}
+.composer-add-trigger {
+  display: flex;
+  padding: 6px;
+  border-radius: 6px;
+}
+.composer-add-trigger:hover,
+.composer-add-trigger[aria-expanded="true"] {
+  background: var(--ui-surface-subtle);
+}
+.composer-mentions {
+  position: absolute;
+  z-index: 6;
+  bottom: calc(100% + 10px);
+  left: 0;
+}
+.composer-mentions {
+  width: min(320px, 100%);
+  max-height: min(220px, 25dvh);
+  overflow: auto;
+}
+.composer-mentions button {
+  justify-content: space-between;
+}
+.composer-mentions button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.composer-mentions small {
+  color: var(--ui-text-muted);
+  flex-shrink: 0;
+}
+.composer-mentions p {
+  padding: 9px;
+  color: var(--ui-text-secondary);
+}
+.composer-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 62px;
+  overflow: auto;
+  margin-bottom: 10px;
+}
+.composer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  border: 1px solid var(--ui-border);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+.composer-chip button {
+  flex-shrink: 0;
+}
+.composer-feedback {
+  font-size: 10px;
+  line-height: 1.6;
+  margin-top: 7px;
+  padding: 0 8px;
+  max-height: 54px;
+  overflow: auto;
+}
+.composer-feedback button {
+  text-decoration: underline;
+  margin-left: 8px;
+}
+.composer-prompt-toggle[aria-expanded="true"] {
+  background: var(--ui-surface-subtle);
+  color: var(--ui-text);
+}
+.composer-history-toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.composer-history-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--ui-border);
+  flex-shrink: 0;
+}
+.composer-history-heading h2 {
+  font-size: 12px;
+  font-weight: 600;
+}
+.composer-history-log {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+.composer-history-log li + li {
+  border-top: 1px solid var(--ui-border);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+.composer-history-prompt strong {
+  display: block;
+  color: var(--ui-text-muted);
+  font-size: 10px;
+  margin-bottom: 3px;
+}
+.composer-history-response {
+  margin-top: 8px;
+}
+.composer-history-response:not(.notice-error) {
+  color: var(--ui-text-secondary);
+}
+.composer-history-response svg {
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.composer-history-actions {
+  border-top: 1px solid var(--ui-border);
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+@media (max-width: 450px) {
+  .composer-prompt-toggle span {
+    display: none;
+  }
+}
+.composer-file-input {
+  display: none;
+}
+.composer-text-context {
+  border-top: 1px solid var(--ui-border);
+  padding-top: 10px;
+}
+.composer-text-context input,
+.composer-text-context textarea {
+  width: 100%;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  padding: 6px;
+  border: 1px solid var(--ui-border);
+  border-radius: 5px;
+  margin-bottom: 6px;
+}
+.composer-text-context textarea {
+  display: block;
+  height: 70px;
+  resize: none;
+}
+.composer-text-context > div {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+}
+@media (max-width: 550px) {
+  .ai-composer {
+    width: calc(100% - 20px);
+    bottom: 10px;
+  }
+  .ai-composer > form {
+    padding: 12px 12px 8px;
+    border-radius: 18px;
+  }
+  .composer-prompt-wrap > textarea {
+    height: 58px;
+    font-size: 12px;
+  }
+  .composer-toolbar {
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .composer-provider {
+    max-width: 118px;
+  }
+  .composer-provider .dropdown-select-trigger {
+    font-size: 11px;
+  }
+  .composer-mention-hint {
+    display: none;
+  }
+}
+.composer-attach-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.composer-menu-hint {
+  font-size: 11px;
+  color: var(--ui-text-muted);
+}

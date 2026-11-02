@@ -1,0 +1,163 @@
+{
+  "id": "carousel-slides",
+  "name": "Multi-Slide Editorial Carousel",
+  "version": "1.0.0",
+  "kind": "carousel",
+  "description": "Multi-slide carousel deck (cover slide + N insight slides + closing takeaway slide) built for LinkedIn PDF carousels and Instagram swipe decks.",
+  "distillationHint": "Break a blog post, guide, or essay into a cover headline + 2 to 6 focused slides (each with a short title <= 55 chars and body <= 160 chars) + a final call-to-action takeaway.",
+  "tags": ["carousel", "slides", "linkedin", "instagram", "pdf", "deck"],
+  "defaultSize": "square",
+  "supportedSizes": ["square", "portrait", "grid-3x4"],
+  "defaultTheme": "editorial-dark",
+  "themes": {
+    "editorial-dark": {
+      "name": "Editorial Dark",
+      "background": "#090d16",
+      "surface": "#111827",
+      "surfaceElevated": "#1e293b",
+      "textPrimary": "#f8fafc",
+      "textSecondary": "#cbd5e1",
+      "textMuted": "#94a3b8",
+      "accent": "#38bdf8",
+      "accentSecondary": "#818cf8",
+      "border": "#1e293b",
+      "badgeBg": "#0c4a6e",
+      "badgeText": "#7dd3fc"
+    },
+    "warm-paper": {
+      "name": "Warm Magazine",
+      "background": "#f5f3ef",
+      "surface": "#ffffff",
+      "surfaceElevated": "#ede9e0",
+      "textPrimary": "#1c1917",
+      "textSecondary": "#44403c",
+      "textMuted": "#57534e",
+      "accent": "#c2410c",
+      "accentSecondary": "#ea580c",
+      "border": "#d6d3cd",
+      "badgeBg": "#ffedd5",
+      "badgeText": "#9a3412"
+    },
+    "emerald-ink": {
+      "name": "Emerald Deck",
+      "background": "#04130e",
+      "surface": "#082219",
+      "surfaceElevated": "#0f3528",
+      "textPrimary": "#ecfdf5",
+      "textSecondary": "#a7f3d0",
+      "textMuted": "#6ee7b7",
+      "accent": "#34d399",
+      "accentSecondary": "#10b981",
+      "border": "#144936",
+      "badgeBg": "#064e3b",
+      "badgeText": "#6ee7b7"
+    }
+  },
+  "slots": {
+    "deckTag": {
+      "type": "string",
+      "label": "Deck Category Tag",
+      "description": "Short topic pill displayed on the cover slide.",
+      "required": false,
+      "maxLength": 28,
+      "defaultValue": "SWIPE GUIDE"
+    },
+    "coverTitle": {
+      "type": "string",
+      "label": "Cover Slide Headline",
+      "description": "Bold hook title on Slide 1.",
+      "required": true,
+      "maxLength": 110,
+      "recommendedMaxLength": 75,
+      "maxLines": 3,
+      "autofit": {
+        "minFontPx": 38,
+        "maxFontPx": 60,
+        "maxLines": 3
+      }
+    },
+    "coverSubtitle": {
+      "type": "string",
+      "label": "Cover Subtitle",
+      "description": "Supporting context sentence on Slide 1.",
+      "required": true,
+      "maxLength": 140
+    },
+    "author": {
+      "type": "string",
+      "label": "Author / Handle",
+      "description": "Author name or handle displayed in the slide footer.",
+      "required": true,
+      "maxLength": 44
+    },
+    "slides": {
+      "type": "object[]",
+      "label": "Content Slides",
+      "description": "2 to 8 content slides between the cover and final takeaway.",
+      "required": true,
+      "minItems": 2,
+      "maxItems": 8,
+      "itemSchema": {
+        "title": {
+          "type": "string",
+          "label": "Slide Title",
+          "required": true,
+          "maxLength": 70
+        },
+        "body": {
+          "type": "string",
+          "label": "Slide Explanation",
+          "required": true,
+          "maxLength": 190
+        },
+        "takeaway": {
+          "type": "string",
+          "label": "Key Highlight Pill",
+          "required": false,
+          "maxLength": 75
+        }
+      }
+    },
+    "closingTitle": {
+      "type": "string",
+      "label": "Closing Slide Headline",
+      "description": "Summary headline on the final slide.",
+      "required": true,
+      "maxLength": 90
+    },
+    "closingCta": {
+      "type": "string",
+      "label": "Closing Call-to-Action",
+      "description": "Action prompt on the final slide.",
+      "required": true,
+      "maxLength": 120
+    }
+  },
+  "sampleData": {
+    "deckTag": "ARCHITECTURE PLAYBOOK",
+    "coverTitle": "Why Your Coding Agent Should Render Social Assets Locally",
+    "coverSubtitle": "How tinytldr separates LLM distillation from deterministic Chromium + FFmpeg rendering.",
+    "author": "@ajrahim · tinytldr.com",
+    "slides": [
+      {
+        "title": "1. The Calling Agent Already Has Your Context",
+        "body": "Claude Code, Cursor, and Windsurf already read your PRs, docs, and benchmarks. Sending text to a second SaaS LLM wastes tokens and loses nuance.",
+        "takeaway": "Zero duplicate LLM calls or API keys inside tinytldr."
+      },
+      {
+        "title": "2. Strict Slot Contracts Prevent Layout Drift",
+        "body": "Every template declares strict Zod slot schemas, character budgets, and binary-search font autofit rules before Chromium ever takes a screenshot.",
+        "takeaway": "Overflow, contrast, and safe-zone checks run automatically."
+      },
+      {
+        "title": "3. One Spec Exports Every Platform Format",
+        "body": "From the exact same JSON payload, export high-DPI PNGs, multi-page LinkedIn PDFs, or 30fps H.264 MP4 animations completely offline.",
+        "takeaway": "100% SHA-256 deterministic output on every run."
+      }
+    ],
+    "closingTitle": "Build Once. Distill & Render Anywhere.",
+    "closingCta": "Run `npx tinytldr mcp` in Claude Code or Cursor to turn your next ship into a social pack."
+  },
+  "author": "AJ Rahim",
+  "license": "MIT"
+}

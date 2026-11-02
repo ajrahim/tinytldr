@@ -1,0 +1,20 @@
+.sandbox-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  overflow: hidden;
+  padding-block: 4px;
+}
+.sandbox-preview.is-fitted {
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+}
+.sandbox-preview.is-artboard {
+  padding: 0;
+  height: 100%;
+}
+.sandbox-preview.is-artboard > div {
+  border-radius: 0;
+}

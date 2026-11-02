@@ -1,0 +1,38 @@
+{
+  "name": "@tinytldr/renderer",
+  "version": "0.1.0",
+  "description": "Playwright Chromium image/PDF renderer and deterministic WAAPI + ffmpeg video encoder for tinytldr.",
+  "license": "MIT",
+  "author": "AJ Rahim",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@tinytldr/core": "workspace:*",
+    "@tinytldr/runtime": "workspace:*",
+    "@tinytldr/templates": "workspace:*",
+    "dompurify": "^3.2.7",
+    "jsdom": "^26.0.0",
+    "pdf-lib": "^1.17.1",
+    "playwright": "^1.52.0"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^21.1.7",
+    "@types/pngjs": "^6.0.5",
+    "pixelmatch": "^6.0.0",
+    "pngjs": "^7.0.0"
+  }
+}

@@ -1,0 +1,46 @@
+.mcp-authorization-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  box-sizing: border-box;
+}
+
+.mcp-authorization-card {
+  width: min(100%, 480px);
+  padding: 24px;
+  box-sizing: border-box;
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.mcp-authorization-wordmark {
+  font-size: 15.2px;
+  font-weight: 700;
+}
+
+.mcp-authorization-card h1 {
+  font-size: 24px;
+}
+
+.mcp-authorization-card dt {
+  margin-top: 16px;
+  color: var(--ui-text-secondary);
+  font-size: 12px;
+}
+
+.mcp-authorization-card dd {
+  margin: 4px 0 0;
+}
+
+.mcp-authorization-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 24px 0 16px;
+}

@@ -1,0 +1,107 @@
+{
+  "id": "stat-counter",
+  "name": "Animated Metric Counter Video",
+  "version": "1.0.0",
+  "kind": "video",
+  "durationMs": 4000,
+  "fps": 30,
+  "description": "Animated KPI/benchmark counter that interpolates smoothly from 0 to the target metric with a synchronized progress bar and context callout.",
+  "distillationHint": "Choose one dramatic numeric metric with prefix/suffix (e.g. '+412%', '3.44s', '10,420') and a 0-100 progress bar percentage so the counter climb creates visual momentum.",
+  "tags": ["video", "stat", "counter", "metrics", "benchmark", "x", "linkedin", "reels"],
+  "defaultSize": "square",
+  "supportedSizes": ["square", "portrait", "x", "hd", "story"],
+  "defaultTheme": "electric-cyan",
+  "themes": {
+    "electric-cyan": {
+      "name": "Electric Cyan",
+      "background": "#050914",
+      "surface": "#0f172a",
+      "surfaceElevated": "#1e293b",
+      "textPrimary": "#f8fafc",
+      "textSecondary": "#cbd5e1",
+      "textMuted": "#94a3b8",
+      "accent": "#38bdf8",
+      "accentSecondary": "#22d3ee",
+      "border": "#1e293b",
+      "badgeBg": "#082f49",
+      "badgeText": "#7dd3fc"
+    },
+    "neon-lime": {
+      "name": "Neon Lime",
+      "background": "#051209",
+      "surface": "#0b2112",
+      "surfaceElevated": "#13361f",
+      "textPrimary": "#f0fdf4",
+      "textSecondary": "#bbf7d0",
+      "textMuted": "#86efac",
+      "accent": "#4ade80",
+      "accentSecondary": "#22c55e",
+      "border": "#164e2a",
+      "badgeBg": "#064e3b",
+      "badgeText": "#86efac"
+    }
+  },
+  "slots": {
+    "badge": {
+      "type": "string",
+      "label": "Benchmark Category",
+      "description": "Short pill above the counter.",
+      "required": false,
+      "maxLength": 28,
+      "defaultValue": "VERIFIED BENCHMARK"
+    },
+    "metricTarget": {
+      "type": "string",
+      "label": "Target Metric Value",
+      "description": "Numeric string with optional prefix/suffix (e.g. '+412%', '3.44s', '12,500').",
+      "required": true,
+      "maxLength": 16
+    },
+    "label": {
+      "type": "string",
+      "label": "Metric Headline",
+      "description": "What the counter measures.",
+      "required": true,
+      "maxLength": 84,
+      "recommendedMaxLength": 60,
+      "maxLines": 2,
+      "autofit": {
+        "minFontPx": 28,
+        "maxFontPx": 44,
+        "maxLines": 2
+      }
+    },
+    "progressPercent": {
+      "type": "number",
+      "label": "Progress Bar Fill (0-100)",
+      "description": "Percentage width of the animated progress bar.",
+      "required": false,
+      "defaultValue": 92
+    },
+    "context": {
+      "type": "string",
+      "label": "Supporting Context",
+      "description": "1-2 sentence explanation below the progress bar.",
+      "required": true,
+      "maxLength": 160
+    },
+    "source": {
+      "type": "string",
+      "label": "Footer Source",
+      "description": "Attribution or benchmark environment.",
+      "required": false,
+      "maxLength": 64,
+      "defaultValue": "Source: tinytldr Phase 3 Benchmark Suite"
+    }
+  },
+  "sampleData": {
+    "badge": "RENDER THROUGHPUT",
+    "metricTarget": "+412%",
+    "label": "Faster Deterministic Frame Stepping vs. Real-Time Capture",
+    "progressPercent": 92,
+    "context": "Stepping Web Animations API timelines directly to exact frame timestamps eliminates real-time wait delays and drops frame variance to 0.0%.",
+    "source": "Source: tinytldr Engine Benchmark · 1080×1080 @ 30fps"
+  },
+  "author": "AJ Rahim",
+  "license": "MIT"
+}

@@ -1,0 +1,13 @@
+{
+  "version": "v0.2.0",
+  "releaseDate": "OCTOBER 2026 · MIT",
+  "title": "Multi-Slide Carousels & LinkedIn Document PDFs",
+  "subtitle": "Export swipeable Instagram carousels and exact-pixel multi-page PDFs from one command.",
+  "items": [
+    "NEW · Multi-slide PNG/JPG/WebP export (out-01.png .. out-0N.png)",
+    "NEW · Exact-pixel multi-page PDF export for LinkedIn carousels",
+    "NEW · 9:16 Story & Reel safe-zone validation and visual overlays",
+    "IMPROVED · 7 static + 2 carousel templates with bundled OFL fonts"
+  ],
+  "cta": "npx tinytldr@latest"
+}

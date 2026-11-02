@@ -1,0 +1,23 @@
+FROM mcr.microsoft.com/playwright:v1.64.1-noble AS build
+WORKDIR /app
+RUN npm install --global pnpm@10.6.0
+COPY . .
+RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @tinytldr/mcp... build
+
+FROM mcr.microsoft.com/playwright:v1.64.1-noble
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/packages ./packages
+COPY --from=build /app/mcp/dist ./mcp/dist
+COPY --from=build /app/mcp/node_modules ./mcp/node_modules
+RUN mkdir /app/render-output && chown pwuser:pwuser /app/render-output
+ENV NODE_ENV=production \
+    NODE_OPTIONS=--max-old-space-size=512 \
+    TINYTLDR_API_OUTPUT_DIRECTORY=/app/render-output
+USER pwuser
+EXPOSE 8080
+CMD ["node", "mcp/dist/ApiMain.js"]

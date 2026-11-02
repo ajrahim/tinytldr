@@ -1,0 +1,27 @@
+{
+  "badge": "RENDER PIPELINE",
+  "title": "How tinytldr Encodes a 5s Social Video in 3.4 Seconds",
+  "events": [
+    {
+      "step": "T + 0.0s",
+      "headline": "Compile Liquid + Zod Slot Contract",
+      "detail": "Inject theme tokens and base64 OFL fonts with zero external HTTP calls."
+    },
+    {
+      "step": "T + 0.4s",
+      "headline": "Binary-Search Autofit & WCAG Audit",
+      "detail": "Verify text bounds, contrast ratios, and 9:16 platform safe zones."
+    },
+    {
+      "step": "T + 1.2s",
+      "headline": "Step WAAPI Timelines Frame-by-Frame",
+      "detail": "Pause document.getAnimations() and seek to exact (f / 30) * 1000ms ticks."
+    },
+    {
+      "step": "T + 3.4s",
+      "headline": "Mux H.264 yuv420p MP4 with Faststart",
+      "detail": "Pipe frames directly to FFmpeg for universal X, LinkedIn, and Reels playback."
+    }
+  ],
+  "footer": "100% SHA-256 deterministic across every run"
+}

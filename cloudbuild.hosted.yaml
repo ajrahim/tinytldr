@@ -1,0 +1,22 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --file
+      - Dockerfile.Hosted
+      - --tag
+      - ${_IMAGE}
+      - --build-arg
+      - FIREBASE_API_KEY=${_FIREBASE_API_KEY}
+      - --build-arg
+      - FIREBASE_APP_ID=${_FIREBASE_APP_ID}
+      - --build-arg
+      - FIREBASE_PROJECT_ID=${PROJECT_ID}
+      - --build-arg
+      - FIREBASE_AUTH_DOMAIN=${_FIREBASE_AUTH_DOMAIN}
+      - .
+images:
+  - ${_IMAGE}
+timeout: 1200s
+options:
+  logging: CLOUD_LOGGING_ONLY

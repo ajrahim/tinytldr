@@ -1,0 +1,111 @@
+.account-dialog h3 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.account-dialog .app-dialog-body p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.account-section + .account-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ui-border);
+}
+.account-dialog label {
+  display: block;
+  font-size: 12px;
+}
+.account-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.account-name-row input {
+  flex: 1;
+  margin: 0;
+}
+.account-name-row .primary-button {
+  flex-shrink: 0;
+}
+.account-dialog .app-dialog-body .account-hint {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--ui-text-secondary);
+}
+.account-dialog .app-dialog-body .account-save-status {
+  margin-top: 8px;
+  color: var(--ui-link);
+}
+.account-email-label,
+.account-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.account-email-label {
+  margin-top: 16px;
+}
+.account-section-heading {
+  margin-bottom: 12px;
+}
+.account-section-heading h3 {
+  margin: 0;
+}
+.account-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid var(--ui-border);
+  border-radius: 20px;
+  background: var(--ui-surface-subtle);
+  color: var(--ui-text-secondary);
+  font-size: 10px;
+}
+.account-appearance {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.account-appearance button {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 6px;
+  color: var(--ui-text-secondary);
+  background: var(--ui-bg);
+  font-size: 12px;
+}
+.account-appearance button[aria-pressed="true"] {
+  border-color: var(--ui-pill-bg);
+  background: var(--ui-pill-bg);
+  color: var(--ui-pill-text);
+}
+.account-manage-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  margin-top: 12px;
+}
+.account-signout-error {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 12px;
+}
+.account-signin-form label {
+  margin-top: 20px;
+}
+.account-dialog .app-dialog-body .notice-error {
+  margin-top: 12px;
+}

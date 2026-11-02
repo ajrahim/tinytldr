@@ -1,0 +1,41 @@
+<div class="tl-card">
+  <div class="tl-frame">
+    <header class="tl-header">
+      <span class="tl-badge" data-tt-slot="badge">{{ badge }}</span>
+      <h1
+        class="tl-title"
+        data-tt-slot="title"
+        data-tt-autofit="true"
+        data-tt-min-font-px="28"
+        data-tt-max-font-px="40"
+        data-tt-max-lines="2"
+      >{{ title }}</h1>
+    </header>
+
+    <main class="tl-body" data-tt-slot="events">
+      <div class="tl-rail" aria-hidden="true"></div>
+      <ol class="tl-list">
+        {% for ev in events %}
+          <li
+            class="tl-item"
+            style="animation-delay: {{ forloop.index0 | times: 650 | plus: 380 }}ms;"
+          >
+            <div class="tl-dot" aria-hidden="true"></div>
+            <div class="tl-content">
+              <div class="tl-row-top">
+                <span class="tl-step">{{ ev.step }}</span>
+                <span class="tl-headline">{{ ev.headline }}</span>
+              </div>
+              <p class="tl-detail">{{ ev.detail }}</p>
+            </div>
+          </li>
+        {% endfor %}
+      </ol>
+    </main>
+
+    <footer class="tl-footer">
+      <span data-tt-slot="footer">{{ footer }}</span>
+      <span class="tl-brand">tinytldr</span>
+    </footer>
+  </div>
+</div>

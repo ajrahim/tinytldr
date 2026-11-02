@@ -1,0 +1,13 @@
+{
+  "author": "AJ Rahim",
+  "handle": "@ajrahim",
+  "badge": "ARCHITECTURE TL;DR",
+  "headline": "How tinytldr turns coding agents into deterministic social studios:",
+  "points": [
+    "Your coding agent already holds the full context—no second LLM API key needed.",
+    "LiquidJS templates + CSS custom properties adapt to all 10 social size presets.",
+    "Bundled OFL fonts (Inter, Fraunces, JetBrains Mono, Space Grotesk) run 100% offline.",
+    "WAAPI timeline seeking + FFmpeg image2pipe produces frame-exact H.264 MP4s."
+  ],
+  "footer": "npx tinytldr · MIT Open Source"
+}

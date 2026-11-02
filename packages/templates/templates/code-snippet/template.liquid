@@ -1,0 +1,48 @@
+{% assign codeLines = code | lines %}
+<div class="code-card">
+  <header class="top-bar">
+    <h1
+      class="card-title"
+      data-tt-slot="title"
+      data-tt-autofit="true"
+      data-tt-min-font-px="26"
+      data-tt-max-font-px="38"
+      data-tt-max-lines="2"
+    >{{ title }}</h1>
+  </header>
+
+  <section class="editor-window">
+    <div class="window-chrome">
+      <div class="traffic-lights" aria-hidden="true">
+        <span class="dot dot-red"></span>
+        <span class="dot dot-amber"></span>
+        <span class="dot dot-green"></span>
+      </div>
+      <div class="filename-tab" data-tt-slot="filename">{{ filename }}</div>
+      <div class="lang-badge" data-tt-slot="language">{{ language }}</div>
+    </div>
+
+    <div class="code-viewport" data-tt-slot="code">
+      {% for line in codeLines %}
+        <div class="code-line">
+          <span class="line-no" aria-hidden="true">{{ forloop.index }}</span>
+          <span class="line-text">{{ line }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <footer class="bottom-section">
+    {% if annotation and annotation != "" %}
+      <div class="annotation-box" data-tt-slot="annotation">
+        <span class="annotation-label">WHY IT MATTERS</span>
+        <p class="annotation-text">{{ annotation }}</p>
+      </div>
+    {% endif %}
+
+    <div class="meta-bar">
+      <span class="footer-label" data-tt-slot="footer">{{ footer }}</span>
+      <span class="brand-tag">tinytldr.com</span>
+    </div>
+  </footer>
+</div>

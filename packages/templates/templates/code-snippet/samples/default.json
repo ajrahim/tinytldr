@@ -1,0 +1,8 @@
+{
+  "title": "Deterministic WAAPI Frame Stepping in 8 Lines",
+  "filename": "packages/runtime/seek.ts",
+  "language": "typescript",
+  "code": "export function seekTimeline(targetMs: number): void {\n  for (const anim of document.getAnimations({ subtree: true })) {\n    anim.pause();\n    anim.currentTime = Math.max(0, targetMs);\n  }\n}",
+  "annotation": "Pausing WAAPI animations and setting currentTime per frame guarantees identical SHA-256 video frames across every run.",
+  "footer": "npx tinytldr · MIT Open Source"
+}

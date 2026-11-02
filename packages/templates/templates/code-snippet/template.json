@@ -1,0 +1,140 @@
+{
+  "id": "code-snippet",
+  "name": "Developer Code Snippet Card",
+  "version": "1.0.0",
+  "kind": "static",
+  "description": "Developer-focused code card with window chrome, filename tab, language badge, line-numbered monospace code block, and annotation takeaway banner.",
+  "distillationHint": "Trim code to the essential 4-12 lines (<= 68 chars per line) that illustrate the pattern or fix. Pair with a clear title, filename, language label, and 1-sentence takeaway.",
+  "tags": ["code", "developer", "engineering", "snippet", "x", "linkedin", "instagram"],
+  "defaultSize": "square",
+  "supportedSizes": ["square", "portrait", "grid-3x4", "x", "linkedin", "og", "hd"],
+  "defaultTheme": "tokyo",
+  "themes": {
+    "tokyo": {
+      "name": "Tokyo Night",
+      "background": "#0a0e1a",
+      "surface": "#111827",
+      "surfaceElevated": "#1e293b",
+      "textPrimary": "#f8fafc",
+      "textSecondary": "#cbd5e1",
+      "textMuted": "#94a3b8",
+      "accent": "#38bdf8",
+      "accentSecondary": "#a78bfa",
+      "border": "#1e293b",
+      "badgeBg": "#1e293b",
+      "badgeText": "#38bdf8",
+      "codeBg": "#060911",
+      "codeText": "#e2e8f0"
+    },
+    "slate": {
+      "name": "Slate Carbon",
+      "background": "#09090b",
+      "surface": "#18181b",
+      "surfaceElevated": "#27272a",
+      "textPrimary": "#fafafa",
+      "textSecondary": "#d4d4d8",
+      "textMuted": "#a1a1aa",
+      "accent": "#34d399",
+      "accentSecondary": "#10b981",
+      "border": "#27272a",
+      "badgeBg": "#064e3b",
+      "badgeText": "#6ee7b7",
+      "codeBg": "#09090b",
+      "codeText": "#e4e4e7"
+    },
+    "daylight": {
+      "name": "Daylight Studio",
+      "background": "#f1f5f9",
+      "surface": "#ffffff",
+      "surfaceElevated": "#e2e8f0",
+      "textPrimary": "#0f172a",
+      "textSecondary": "#334155",
+      "textMuted": "#475569",
+      "accent": "#2563eb",
+      "accentSecondary": "#4f46e5",
+      "border": "#cbd5e1",
+      "badgeBg": "#dbeafe",
+      "badgeText": "#1d4ed8",
+      "codeBg": "#0f172a",
+      "codeText": "#f8fafc"
+    }
+  },
+  "slots": {
+    "title": {
+      "type": "string",
+      "label": "Card Title",
+      "description": "Concise heading above the code window explaining the pattern.",
+      "required": true,
+      "maxLength": 90,
+      "recommendedMaxLength": 64,
+      "maxLines": 2,
+      "autofit": {
+        "minFontPx": 26,
+        "maxFontPx": 40,
+        "maxLines": 2
+      }
+    },
+    "filename": {
+      "type": "string",
+      "label": "Filename Tab",
+      "description": "Filename or path displayed in the editor window header.",
+      "required": false,
+      "maxLength": 48,
+      "defaultValue": "render.ts"
+    },
+    "language": {
+      "type": "enum",
+      "label": "Language",
+      "description": "Programming language badge.",
+      "required": false,
+      "enumValues": [
+        "typescript",
+        "javascript",
+        "python",
+        "rust",
+        "go",
+        "sql",
+        "bash",
+        "json",
+        "html",
+        "css"
+      ],
+      "defaultValue": "typescript"
+    },
+    "code": {
+      "type": "code",
+      "label": "Code Snippet",
+      "description": "4-12 lines of code (<= 68 chars per line recommended).",
+      "required": true,
+      "maxLength": 720,
+      "recommendedMaxLength": 480
+    },
+    "annotation": {
+      "type": "string",
+      "label": "Key Takeaway Annotation",
+      "description": "1-sentence callout below the code window explaining why it matters.",
+      "required": false,
+      "maxLength": 160,
+      "recommendedMaxLength": 120,
+      "defaultValue": ""
+    },
+    "footer": {
+      "type": "string",
+      "label": "Footer Label",
+      "description": "Footer attribution or package name.",
+      "required": false,
+      "maxLength": 60,
+      "defaultValue": "npx tinytldr"
+    }
+  },
+  "sampleData": {
+    "title": "Deterministic WAAPI Frame Stepping in 8 Lines",
+    "filename": "packages/runtime/seek.ts",
+    "language": "typescript",
+    "code": "export function seekTimeline(targetMs: number): void {\n  for (const anim of document.getAnimations({ subtree: true })) {\n    anim.pause();\n    anim.currentTime = Math.max(0, targetMs);\n  }\n}",
+    "annotation": "Pausing WAAPI animations and setting currentTime per frame guarantees identical SHA-256 video frames across every run.",
+    "footer": "npx tinytldr · MIT Open Source"
+  },
+  "author": "AJ Rahim",
+  "license": "MIT"
+}

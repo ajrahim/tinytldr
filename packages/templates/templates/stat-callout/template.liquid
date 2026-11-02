@@ -1,0 +1,46 @@
+<div class="stat-card">
+  <div class="stat-frame">
+    <header class="stat-header">
+      <span class="eyebrow" data-tt-slot="eyebrow">{{ eyebrow }}</span>
+      {% if deltaBadge and deltaBadge != "" %}
+        <span class="delta-pill" data-tt-slot="deltaBadge">{{ deltaBadge }}</span>
+      {% endif %}
+    </header>
+
+    <section class="hero-metric-section">
+      <div
+        class="stat-value"
+        data-tt-slot="statValue"
+        data-tt-autofit="true"
+        data-tt-min-font-px="72"
+        data-tt-max-font-px="144"
+        data-tt-max-lines="1"
+      >{{ statValue }}</div>
+
+      <h2
+        class="stat-headline"
+        data-tt-slot="headline"
+        data-tt-autofit="true"
+        data-tt-min-font-px="26"
+        data-tt-max-font-px="40"
+        data-tt-max-lines="3"
+      >{{ headline }}</h2>
+    </section>
+
+    {% if highlights and highlights.size > 0 %}
+      <ul class="highlights-list" data-tt-slot="highlights">
+        {% for item in highlights %}
+          <li class="highlight-item">
+            <span class="highlight-dot" aria-hidden="true"></span>
+            <span class="highlight-text">{{ item }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <footer class="stat-footer">
+      <span class="source-note" data-tt-slot="source">{{ source }}</span>
+      <span class="brand-mark">tinytldr</span>
+    </footer>
+  </div>
+</div>

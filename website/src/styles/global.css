@@ -1,0 +1,231 @@
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/inter/Inter-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/inter/Inter-SemiBold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/inter/Inter-Bold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/jetbrains-mono/JetBrainsMono-SemiBold.woff2") format("woff2");
+}
+
+:root {
+  --ui-bg: #121214;
+  --ui-surface: #18181b;
+  --ui-surface-subtle: #202024;
+  --ui-canvas: #0c0c0e;
+  --ui-border: rgba(255, 255, 255, 0.08);
+  --ui-border-strong: rgba(255, 255, 255, 0.16);
+  --ui-text: #f4f4f5;
+  --ui-text-secondary: #a1a1aa;
+  --ui-text-muted: #71717a;
+  --ui-pill-bg: #f4f4f5;
+  --ui-pill-text: #111113;
+  --ui-link: #a8a2ff;
+
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  color-scheme: dark;
+}
+
+html.light {
+  --ui-bg: #ffffff;
+  --ui-surface: #ffffff;
+  --ui-surface-subtle: #f7f7f6;
+  --ui-canvas: #f8f8f6;
+  --ui-border: rgba(0, 0, 0, 0.08);
+  --ui-border-strong: rgba(0, 0, 0, 0.16);
+  --ui-text: #111113;
+  --ui-text-secondary: #52525b;
+  --ui-text-muted: #77777e;
+  --ui-pill-bg: #111113;
+  --ui-pill-text: #ffffff;
+  --ui-link: #4939db;
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background-color: var(--ui-bg);
+  color: var(--ui-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+select,
+summary {
+  cursor: pointer;
+}
+
+button:disabled,
+fieldset:disabled select {
+  cursor: default;
+  opacity: 0.5;
+}
+
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--ui-link);
+  outline-offset: 4px;
+}
+
+.muted {
+  color: var(--ui-text-secondary);
+}
+.eyebrow {
+  color: var(--ui-text-muted);
+  font:
+    10px/1.6 "JetBrains Mono",
+    monospace;
+  letter-spacing: 0.13em;
+}
+.text-link {
+  color: var(--ui-link);
+  font-size: 12px;
+  text-align: left;
+}
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  border: 1px solid var(--ui-pill-bg);
+  border-radius: 6px;
+  background: var(--ui-pill-bg);
+  color: var(--ui-pill-text);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 12px 18px;
+  white-space: nowrap;
+}
+.primary-button:hover {
+  opacity: 0.84;
+}
+.notice-error {
+  color: #bc3636;
+}
+html.dark .notice-error {
+  color: #f5a4a4;
+}
+.global-notice {
+  flex-shrink: 0;
+  max-height: 25dvh;
+  overflow: auto;
+  padding: 12px 28px;
+  border-bottom: 1px solid var(--ui-border);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.ui-app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--ui-bg);
+  color: var(--ui-text);
+}
+.workspace-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ui-surface {
+  background-color: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+}
+
+.ui-surface-subtle {
+  background-color: var(--ui-surface-subtle);
+  border: 1px solid var(--ui-border);
+}
+
+.ui-canvas {
+  background-color: var(--ui-canvas);
+  border: 1px solid var(--ui-border);
+}
+
+.ui-hairline-b {
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.ui-hairline-t {
+  border-top: 1px solid var(--ui-border);
+}
+
+.ui-hairline-r {
+  border-right: 1px solid var(--ui-border);
+}
+
+.ui-hairline-l {
+  border-left: 1px solid var(--ui-border);
+}
+
+.ui-input {
+  background-color: var(--ui-surface-subtle);
+  border: 1px solid var(--ui-border);
+  color: var(--ui-text);
+  transition: border-color 140ms ease;
+}
+
+.ui-input:focus {
+  border-color: var(--ui-border-strong);
+  outline: none;
+}
+
+.ui-pill-active {
+  background-color: var(--ui-pill-bg);
+  color: var(--ui-pill-text);
+}
+
+.ui-pill-inactive {
+  background-color: transparent;
+  color: var(--ui-text-secondary);
+}
+
+.ui-pill-inactive:hover {
+  color: var(--ui-text);
+  background-color: var(--ui-surface-subtle);
+}

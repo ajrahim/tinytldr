@@ -1,0 +1,12 @@
+{
+  "eyebrow": "RENDER ENGINE BENCHMARK",
+  "statValue": "3.44s",
+  "deltaBadge": "43.6 FPS EFFECTIVE",
+  "headline": "Full 5-second 1080×1080 30fps animated MP4 rendered with 100% SHA-256 frame determinism.",
+  "highlights": [
+    "Playwright Chromium WAAPI timeline seek + FFmpeg image2pipe",
+    "Zero duplicate browser runtimes or cloud API calls required",
+    "Verified h264 yuv420p faststart output on Windows, macOS & Linux"
+  ],
+  "source": "tinytldr v0.1 · Local Chromium + FFmpeg 9.0"
+}

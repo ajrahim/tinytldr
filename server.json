@@ -1,0 +1,28 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "io.github.ajrahim/tinytldr",
+  "description": "Deterministic HTML/CSS-to-image, PDF carousel, and MP4 video rendering MCP server for coding agents.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": {
+    "url": "https://github.com/ajrahim/tinytldr",
+    "source": "github"
+  },
+  "homepage": "https://www.tinytldr.com",
+  "packages": [
+    {
+      "registry_name": "npm",
+      "name": "tinytldr",
+      "version": "0.1.0",
+      "runtime_hint": "npx",
+      "runtime_arguments": ["-y", "tinytldr", "mcp"],
+      "environment_variables": []
+    }
+  ],
+  "remotes": [
+    {
+      "transport_type": "streamable-http",
+      "url": "https://mcp.tinytldr.com/mcp"
+    }
+  ]
+}

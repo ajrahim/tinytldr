@@ -1,0 +1,144 @@
+.app-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(520px, calc(100% - 32px));
+  max-width: calc(100% - 32px);
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 8px;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  box-shadow: 0 20px 80px #0003;
+}
+.app-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.app-dialog--compact {
+  width: min(420px, calc(100% - 32px));
+}
+.app-dialog--wide {
+  width: min(1120px, calc(100% - 32px));
+}
+.app-dialog--media {
+  width: min(960px, calc(100% - 32px));
+}
+.app-dialog::backdrop {
+  background: #0005;
+  backdrop-filter: blur(3px);
+}
+.app-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  flex-shrink: 0;
+  gap: 16px;
+  padding: 20px;
+  border-bottom: 1px solid var(--ui-border);
+}
+.app-dialog-heading {
+  flex: 1;
+  min-width: 0;
+}
+.app-dialog-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.025em;
+  overflow-wrap: anywhere;
+}
+.app-dialog-description {
+  margin: 6px 0 0;
+  color: var(--ui-text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.app-dialog .dialog-close {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: -4px -4px 0 0;
+  padding: 6px;
+  border-radius: 6px;
+  color: var(--ui-text-secondary);
+}
+.app-dialog .dialog-close:hover {
+  background: var(--ui-surface-subtle);
+}
+.app-dialog-body {
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px;
+}
+.app-dialog-footer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--ui-border);
+}
+.app-dialog-footer-note {
+  margin-right: auto;
+  color: var(--ui-text-secondary);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.app-dialog .primary-button,
+.dialog-secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.dialog-secondary-button {
+  border: 1px solid var(--ui-border-strong);
+  background: transparent;
+  color: var(--ui-text);
+}
+.dialog-secondary-button:hover {
+  background: var(--ui-surface-subtle);
+}
+.app-dialog input {
+  display: block;
+  min-width: 0;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 6px;
+  background: var(--ui-bg);
+  color: inherit;
+  font-size: 13px;
+}
+.app-dialog input[readonly] {
+  background: var(--ui-surface-subtle);
+  color: var(--ui-text-secondary);
+}
+.app-dialog .notice-error {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 420px) {
+  .app-dialog-header,
+  .app-dialog-body,
+  .app-dialog-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

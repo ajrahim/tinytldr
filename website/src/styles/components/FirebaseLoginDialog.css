@@ -1,0 +1,82 @@
+.firebase-login-dialog .app-dialog-body p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.firebase-google-button {
+  width: 100%;
+  justify-content: center;
+  min-height: 40px;
+  margin-top: 20px;
+}
+.firebase-login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: var(--ui-text-secondary);
+  font-size: 11px;
+}
+.firebase-login-divider::before,
+.firebase-login-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--ui-border);
+}
+.firebase-login-form,
+.firebase-login-field {
+  display: grid;
+  gap: 8px;
+}
+.firebase-login-form {
+  gap: 18px;
+}
+.firebase-login-dialog .muted + .firebase-login-form {
+  margin-top: 20px;
+}
+.firebase-login-field label,
+.firebase-login-link {
+  font-size: 12px;
+}
+.firebase-login-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.firebase-password-field {
+  position: relative;
+}
+.firebase-password-field input {
+  padding-right: 42px;
+}
+.firebase-password-field button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  color: var(--ui-text-secondary);
+}
+.firebase-login-link {
+  color: var(--ui-link);
+  cursor: pointer;
+}
+.firebase-login-link:hover {
+  text-decoration: underline;
+}
+.firebase-login-dialog .app-dialog-body .firebase-login-hint {
+  margin-top: 2px;
+  color: var(--ui-text-secondary);
+  font-size: 11px;
+}
+.firebase-login-dialog .app-dialog-body .firebase-login-switch,
+.firebase-login-dialog .app-dialog-body .notice-error {
+  margin-top: 18px;
+}

@@ -1,0 +1,118 @@
+{
+  "id": "vs-comparison",
+  "name": "Side-by-Side Comparison Card",
+  "version": "1.0.0",
+  "kind": "static",
+  "description": "Two-column comparison card contrasting Before vs. After or Option A vs. Option B with parallel bullet rows and a bottom verdict banner.",
+  "distillationHint": "Contrast two approaches across 3-4 parallel dimensions (<= 65 chars per column item). End with a 1-sentence verdict summarizing why the right column wins.",
+  "tags": ["comparison", "vs", "tradeoffs", "architecture", "x", "linkedin", "instagram"],
+  "defaultSize": "square",
+  "supportedSizes": ["square", "portrait", "grid-3x4", "x", "linkedin", "og", "hd"],
+  "defaultTheme": "contrast",
+  "themes": {
+    "contrast": {
+      "name": "Dark Contrast",
+      "background": "#070b14",
+      "surface": "#0f172a",
+      "surfaceElevated": "#1e293b",
+      "textPrimary": "#f8fafc",
+      "textSecondary": "#cbd5e1",
+      "textMuted": "#94a3b8",
+      "accent": "#38bdf8",
+      "accentSecondary": "#34d399",
+      "border": "#1e293b",
+      "badgeBg": "#064e3b",
+      "badgeText": "#6ee7b7"
+    },
+    "light": {
+      "name": "Crisp Daylight",
+      "background": "#f1f5f9",
+      "surface": "#ffffff",
+      "surfaceElevated": "#f8fafc",
+      "textPrimary": "#0f172a",
+      "textSecondary": "#334155",
+      "textMuted": "#475569",
+      "accent": "#0284c7",
+      "accentSecondary": "#059669",
+      "border": "#cbd5e1",
+      "badgeBg": "#d1fae5",
+      "badgeText": "#065f46"
+    }
+  },
+  "slots": {
+    "title": {
+      "type": "string",
+      "label": "Comparison Title",
+      "description": "Headline framing the comparison.",
+      "required": true,
+      "maxLength": 96,
+      "recommendedMaxLength": 68,
+      "maxLines": 2,
+      "autofit": {
+        "minFontPx": 26,
+        "maxFontPx": 40,
+        "maxLines": 2
+      }
+    },
+    "leftTitle": {
+      "type": "string",
+      "label": "Left Column Label",
+      "description": "Header for the baseline / legacy option.",
+      "required": true,
+      "maxLength": 36
+    },
+    "leftPoints": {
+      "type": "string[]",
+      "label": "Left Column Points",
+      "description": "3 to 4 traits of the left option.",
+      "required": true,
+      "minItems": 2,
+      "maxItems": 4,
+      "maxLength": 80
+    },
+    "rightTitle": {
+      "type": "string",
+      "label": "Right Column Label",
+      "description": "Header for the recommended / new option.",
+      "required": true,
+      "maxLength": 36
+    },
+    "rightPoints": {
+      "type": "string[]",
+      "label": "Right Column Points",
+      "description": "3 to 4 traits of the right option.",
+      "required": true,
+      "minItems": 2,
+      "maxItems": 4,
+      "maxLength": 80
+    },
+    "verdict": {
+      "type": "string",
+      "label": "Bottom Verdict",
+      "description": "1-sentence takeaway below the two columns.",
+      "required": false,
+      "maxLength": 130,
+      "defaultValue": "Let your coding agent distill copy; let tinytldr render exact pixels."
+    }
+  },
+  "sampleData": {
+    "title": "Prompt-to-Image Diffusion vs. Deterministic HTML-to-Post",
+    "leftTitle": "Generic Image Models",
+    "leftPoints": [
+      "Garbled kerning and misspelled technical code terms",
+      "Requires paid cloud API keys and per-image credits",
+      "Cannot export multi-page PDFs or crisp 30fps MP4s",
+      "Different random output on every single run"
+    ],
+    "rightTitle": "tinytldr Engine",
+    "rightPoints": [
+      "Crisp OFL typography and exact monospace code blocks",
+      "Runs 100% locally via MCP with zero LLM API calls",
+      "Exports PNG, JPG, WebP, LinkedIn PDF & H.264 MP4",
+      "100% SHA-256 deterministic across every run"
+    ],
+    "verdict": "Use your coding agent for distillation—and tinytldr for deterministic rendering."
+  },
+  "author": "AJ Rahim",
+  "license": "MIT"
+}

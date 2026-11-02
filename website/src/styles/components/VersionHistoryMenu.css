@@ -1,0 +1,33 @@
+.version-history-trigger {
+  position: relative;
+}
+.version-history-trigger[data-historical]::after {
+  content: "";
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ui-link);
+}
+.version-history-popover {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  width: min(280px, calc(100vw - 16px));
+  max-height: min(420px, calc(100dvh - 64px));
+}
+.version-history-popover > p:not(.dropdown-heading) {
+  padding: 8px 10px;
+  line-height: 1.7;
+}
+.version-history-popover > button {
+  justify-content: space-between;
+}
+.version-history-popover time {
+  display: block;
+  margin-top: 3px;
+  color: var(--ui-text-muted);
+  font-size: 10px;
+}

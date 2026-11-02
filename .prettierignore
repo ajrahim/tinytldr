@@ -1,0 +1,11 @@
+node_modules/
+dist/
+out/
+.next/
+coverage/
+tinytldr-out/
+pnpm-lock.yaml
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log

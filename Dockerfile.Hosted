@@ -1,0 +1,31 @@
+FROM mcr.microsoft.com/playwright:v1.64.1-noble AS build
+WORKDIR /app
+RUN npm install --global pnpm@10.6.0
+COPY . .
+RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @tinytldr/mcp... build
+ARG FIREBASE_API_KEY
+ARG FIREBASE_APP_ID
+ARG FIREBASE_PROJECT_ID
+ARG FIREBASE_AUTH_DOMAIN
+ENV VITE_TINYTLDR_FIREBASE_API_KEY=$FIREBASE_API_KEY \
+    VITE_TINYTLDR_FIREBASE_APP_ID=$FIREBASE_APP_ID \
+    VITE_TINYTLDR_FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID \
+    VITE_TINYTLDR_FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN
+RUN pnpm --filter @tinytldr/website build
+
+FROM mcr.microsoft.com/playwright:v1.64.1-noble
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/packages ./packages
+COPY --from=build /app/mcp/dist ./mcp/dist
+COPY --from=build /app/mcp/node_modules ./mcp/node_modules
+COPY --from=build /app/website/dist ./website/dist
+ENV NODE_ENV=production \
+    NODE_OPTIONS=--max-old-space-size=512 \
+    TINYTLDR_MCP_WEBSITE_DIRECTORY=/app/website/dist
+EXPOSE 8080
+CMD ["node", "mcp/dist/HostedMain.js"]

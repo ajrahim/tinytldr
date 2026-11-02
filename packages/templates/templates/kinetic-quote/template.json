@@ -1,0 +1,91 @@
+{
+  "id": "kinetic-quote",
+  "name": "Kinetic Word-by-Word Quote Video",
+  "version": "1.0.0",
+  "kind": "video",
+  "durationMs": 4000,
+  "fps": 30,
+  "description": "Animated typographic quote card with staggered word-by-word entrance, expanding accent rule, and speaker attribution reveal.",
+  "distillationHint": "Extract a punchy 10-22 word quote (<= 150 chars) with strong rhythm so the staggered word-by-word kinetic reveal lands cleanly within 4 seconds.",
+  "tags": ["video", "quote", "kinetic", "typography", "x", "linkedin", "reels", "shorts"],
+  "defaultSize": "square",
+  "supportedSizes": ["square", "portrait", "x", "hd", "story"],
+  "defaultTheme": "cinema-dark",
+  "themes": {
+    "cinema-dark": {
+      "name": "Cinema Dark",
+      "background": "#060911",
+      "surface": "#0f172a",
+      "surfaceElevated": "#1e293b",
+      "textPrimary": "#f8fafc",
+      "textSecondary": "#cbd5e1",
+      "textMuted": "#94a3b8",
+      "accent": "#38bdf8",
+      "accentSecondary": "#818cf8",
+      "border": "#1e293b",
+      "badgeBg": "#0c4a6e",
+      "badgeText": "#7dd3fc"
+    },
+    "warm-stage": {
+      "name": "Warm Stage",
+      "background": "#120c07",
+      "surface": "#1c140d",
+      "surfaceElevated": "#2b1f14",
+      "textPrimary": "#fef3c7",
+      "textSecondary": "#fde68a",
+      "textMuted": "#d97706",
+      "accent": "#f59e0b",
+      "accentSecondary": "#fbbf24",
+      "border": "#451a03",
+      "badgeBg": "#451a03",
+      "badgeText": "#fde68a"
+    }
+  },
+  "slots": {
+    "category": {
+      "type": "string",
+      "label": "Top Kicker Pill",
+      "description": "Short topic badge above the animated quote.",
+      "required": false,
+      "maxLength": 28,
+      "defaultValue": "KEY INSIGHT"
+    },
+    "quote": {
+      "type": "string",
+      "label": "Animated Quote",
+      "description": "10 to 24 word quote revealed word-by-word.",
+      "required": true,
+      "maxLength": 170,
+      "recommendedMaxLength": 135,
+      "maxLines": 4,
+      "autofit": {
+        "minFontPx": 34,
+        "maxFontPx": 56,
+        "maxLines": 4
+      }
+    },
+    "author": {
+      "type": "string",
+      "label": "Speaker Name",
+      "description": "Full name or handle of the speaker.",
+      "required": true,
+      "maxLength": 50
+    },
+    "role": {
+      "type": "string",
+      "label": "Role / Context",
+      "description": "Speaker title or publication.",
+      "required": false,
+      "maxLength": 64,
+      "defaultValue": "Systems Architecture"
+    }
+  },
+  "sampleData": {
+    "category": "DETERMINISTIC MEDIA",
+    "quote": "Let your coding agent distill the signal—let a deterministic browser engine render every pixel.",
+    "author": "AJ Rahim",
+    "role": "Creator of tinytldr · Open Source MCP"
+  },
+  "author": "AJ Rahim",
+  "license": "MIT"
+}

@@ -1,0 +1,104 @@
+<section class="tt-slide paper-slide" data-tt-slide-index="0">
+  <div class="paper-frame">
+    <header class="paper-top">
+      <span class="paper-badge" data-tt-slot="venue">{{ venue }}</span>
+      <span class="paper-page">SLIDE 01 / 04</span>
+    </header>
+
+    <main class="paper-main">
+      <h1
+        class="paper-title"
+        data-tt-slot="paperTitle"
+        data-tt-autofit="true"
+        data-tt-min-font-px="32"
+        data-tt-max-font-px="48"
+        data-tt-max-lines="3"
+      >{{ paperTitle }}</h1>
+      <p class="paper-authors" data-tt-slot="authors">{{ authors }}</p>
+
+      <div class="claim-box">
+        <div class="claim-label">CORE THESIS</div>
+        <p class="claim-text" data-tt-slot="coreClaim">{{ coreClaim }}</p>
+      </div>
+    </main>
+
+    <footer class="paper-bottom">
+      <span>PAPER TL;DR</span>
+      <span class="paper-cue">PROBLEM & METHOD →</span>
+    </footer>
+  </div>
+</section>
+
+<section class="tt-slide paper-slide" data-tt-slide-index="1">
+  <div class="paper-frame">
+    <header class="paper-top">
+      <span class="paper-badge">PROBLEM & METHODOLOGY</span>
+      <span class="paper-page">SLIDE 02 / 04</span>
+    </header>
+
+    <main class="paper-main dual-cards">
+      <div class="info-block">
+        <div class="block-tag">01 · THE BOTTLENECK</div>
+        <p class="block-body" data-tt-slot="problem">{{ problem }}</p>
+      </div>
+      <div class="info-block info-block-accent">
+        <div class="block-tag">02 · KEY INSIGHT & METHOD</div>
+        <p class="block-body" data-tt-slot="method">{{ method }}</p>
+      </div>
+    </main>
+
+    <footer class="paper-bottom">
+      <span>{{ authors }}</span>
+      <span class="paper-cue">KEY RESULTS →</span>
+    </footer>
+  </div>
+</section>
+
+<section class="tt-slide paper-slide" data-tt-slide-index="2">
+  <div class="paper-frame">
+    <header class="paper-top">
+      <span class="paper-badge">QUANTITATIVE FINDINGS</span>
+      <span class="paper-page">SLIDE 03 / 04</span>
+    </header>
+
+    <main class="paper-main results-list" data-tt-slot="results">
+      {% for res in results %}
+        <div class="result-row">
+          <div class="result-metric">{{ res.metric }}</div>
+          <div class="result-detail">{{ res.detail }}</div>
+        </div>
+      {% endfor %}
+    </main>
+
+    <footer class="paper-bottom">
+      <span>{{ venue }}</span>
+      <span class="paper-cue">TAKEAWAYS →</span>
+    </footer>
+  </div>
+</section>
+
+<section class="tt-slide paper-slide" data-tt-slide-index="3">
+  <div class="paper-frame">
+    <header class="paper-top">
+      <span class="paper-badge">PRACTICAL TAKEAWAYS</span>
+      <span class="paper-page">SLIDE 04 / 04</span>
+    </header>
+
+    <main class="paper-main">
+      <h2 class="takeaways-heading">What Engineers Should Take Away</h2>
+      <ul class="takeaways-list" data-tt-slot="takeaways">
+        {% for item in takeaways %}
+          <li class="takeaway-row">
+            <span class="takeaway-num">0{{ forloop.index }}</span>
+            <span class="takeaway-text">{{ item }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </main>
+
+    <footer class="paper-bottom">
+      <span>Rendered with tinytldr</span>
+      <span class="paper-cue">END OF DECK</span>
+    </footer>
+  </div>
+</section>

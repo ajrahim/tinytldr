@@ -1,0 +1,31 @@
+<div class="steps-card">
+  <div class="steps-frame">
+    <header class="steps-header">
+      <span class="steps-category" data-tt-slot="category">{{ category }}</span>
+      <span class="steps-count">{{ steps.size }} STEPS</span>
+    </header>
+
+    <h1
+      class="steps-title"
+      data-tt-slot="title"
+      data-tt-autofit="true"
+      data-tt-min-font-px="28"
+      data-tt-max-font-px="42"
+      data-tt-max-lines="2"
+    >{{ title }}</h1>
+
+    <ol class="steps-list" data-tt-slot="steps">
+      {% for step in steps %}
+        <li class="step-card">
+          <div class="step-badge" aria-hidden="true">STEP 0{{ forloop.index }}</div>
+          <div class="step-text">{{ step }}</div>
+        </li>
+      {% endfor %}
+    </ol>
+
+    <footer class="steps-footer">
+      <span class="outcome-text" data-tt-slot="outcome">{{ outcome }}</span>
+      <span class="steps-brand">tinytldr</span>
+    </footer>
+  </div>
+</div>

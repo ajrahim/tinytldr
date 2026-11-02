@@ -1,0 +1,39 @@
+{% assign words = quote | split: " " %}
+
+<div class="kq-card">
+  <div class="kq-frame">
+    <header class="kq-header">
+      <span class="kq-badge" data-tt-slot="category">{{ category }}</span>
+      <span class="kq-live-dot" aria-hidden="true"></span>
+    </header>
+
+    <main class="kq-main">
+      <blockquote
+        class="kq-quote"
+        data-tt-slot="quote"
+        data-tt-autofit="true"
+        data-tt-min-font-px="34"
+        data-tt-max-font-px="54"
+        data-tt-max-lines="4"
+      >
+        {% for word in words %}
+          <span
+            class="kq-word"
+            style="animation-delay: {{ forloop.index0 | times: 75 | plus: 120 }}ms;"
+          >{{ word }}</span>
+        {% endfor %}
+      </blockquote>
+      <div class="kq-accent-bar" aria-hidden="true"></div>
+    </main>
+
+    <footer class="kq-footer">
+      <div class="kq-avatar" aria-hidden="true">{{ author | initials }}</div>
+      <div class="kq-meta">
+        <div class="kq-author" data-tt-slot="author">{{ author }}</div>
+        {% if role and role != "" %}
+          <div class="kq-role" data-tt-slot="role">{{ role }}</div>
+        {% endif %}
+      </div>
+    </footer>
+  </div>
+</div>

@@ -1,0 +1,36 @@
+{
+  "name": "@tinytldr/mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for tinytldr (stdio and Streamable HTTP).",
+  "license": "MIT",
+  "author": "AJ Rahim",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.11.0",
+    "@tinytldr/core": "workspace:*",
+    "@tinytldr/renderer": "workspace:*",
+    "@tinytldr/runtime": "workspace:*",
+    "@tinytldr/templates": "workspace:*",
+    "express": "^5.1.0",
+    "firebase-admin": "^14.5.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0"
+  }
+}

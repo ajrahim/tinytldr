@@ -1,0 +1,122 @@
+{
+  "id": "quote-card",
+  "name": "Editorial Quote Card",
+  "version": "1.0.0",
+  "kind": "static",
+  "description": "High-contrast editorial quote and insight card with serif pull-quote typography, author attribution, role/company subtitle, category pill, and monogram badge.",
+  "distillationHint": "Extract a single sharp, self-contained insight or quote (80-200 characters). Pair it with the speaker's name, concise role/company, and a 1-2 word category tag.",
+  "tags": ["quote", "insight", "editorial", "x", "linkedin", "instagram"],
+  "defaultSize": "square",
+  "supportedSizes": ["square", "portrait", "grid-3x4", "x", "linkedin", "og", "story"],
+  "defaultTheme": "obsidian",
+  "themes": {
+    "obsidian": {
+      "name": "Obsidian Editorial",
+      "background": "#090d16",
+      "surface": "#111827",
+      "surfaceElevated": "#1e293b",
+      "textPrimary": "#f8fafc",
+      "textSecondary": "#cbd5e1",
+      "textMuted": "#94a3b8",
+      "accent": "#38bdf8",
+      "accentSecondary": "#818cf8",
+      "border": "#1e293b",
+      "badgeBg": "#1e293b",
+      "badgeText": "#38bdf8"
+    },
+    "paper": {
+      "name": "Warm Paper",
+      "background": "#faf7f2",
+      "surface": "#f3ede2",
+      "surfaceElevated": "#e6dec8",
+      "textPrimary": "#18181b",
+      "textSecondary": "#3f3f46",
+      "textMuted": "#52525b",
+      "accent": "#c2410c",
+      "accentSecondary": "#9a3412",
+      "border": "#e4dccb",
+      "badgeBg": "#ffedd5",
+      "badgeText": "#9a3412"
+    },
+    "emerald": {
+      "name": "Emerald Ink",
+      "background": "#051b14",
+      "surface": "#09261d",
+      "surfaceElevated": "#11382b",
+      "textPrimary": "#ecfdf5",
+      "textSecondary": "#a7f3d0",
+      "textMuted": "#6ee7b7",
+      "accent": "#34d399",
+      "accentSecondary": "#10b981",
+      "border": "#134e3a",
+      "badgeBg": "#064e3b",
+      "badgeText": "#6ee7b7"
+    }
+  },
+  "slots": {
+    "category": {
+      "type": "string",
+      "label": "Category Badge",
+      "description": "Short topic pill shown in the top header (e.g., ENGINEERING, AI SYSTEMS, PRODUCT).",
+      "required": false,
+      "maxLength": 28,
+      "recommendedMaxLength": 18,
+      "defaultValue": "KEY INSIGHT"
+    },
+    "quote": {
+      "type": "string",
+      "label": "Quote / Insight",
+      "description": "Primary distilled quote or takeaway statement.",
+      "required": true,
+      "maxLength": 360,
+      "recommendedMaxLength": 220,
+      "maxLines": 6,
+      "autofit": {
+        "minFontPx": 30,
+        "maxFontPx": 58,
+        "maxLines": 6
+      }
+    },
+    "author": {
+      "type": "string",
+      "label": "Author Name",
+      "description": "Name of the speaker, author, or publication.",
+      "required": true,
+      "maxLength": 64,
+      "recommendedMaxLength": 40
+    },
+    "role": {
+      "type": "string",
+      "label": "Role or Source",
+      "description": "Author title, organization, or source context.",
+      "required": false,
+      "maxLength": 80,
+      "recommendedMaxLength": 54,
+      "defaultValue": ""
+    },
+    "handle": {
+      "type": "string",
+      "label": "Social Handle / URL",
+      "description": "Optional handle or domain shown in the footer right (e.g., @tinytldr).",
+      "required": false,
+      "maxLength": 40,
+      "defaultValue": "tinytldr.com"
+    },
+    "avatarUrl": {
+      "type": "image",
+      "label": "Avatar Image",
+      "description": "Optional data URL or local image path for author avatar.",
+      "required": false,
+      "defaultValue": ""
+    }
+  },
+  "sampleData": {
+    "category": "SYSTEM DESIGN",
+    "quote": "The best developer tools don't guess with another model call—they turn structured intent into deterministic, pixel-accurate artifacts.",
+    "author": "AJ Rahim",
+    "role": "Creator of tinytldr · Open Source",
+    "handle": "@ajrahim"
+  },
+  "author": "AJ Rahim",
+  "license": "MIT"
+}

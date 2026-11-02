@@ -1,0 +1,66 @@
+.provider-dialog h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.provider-dialog .app-dialog-body p {
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 12px 0;
+}
+.provider-dialog label {
+  display: block;
+  font-size: 12px;
+  margin: 16px 0;
+  min-width: 0;
+}
+.provider-select {
+  display: block;
+  margin-top: 8px;
+}
+.provider-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.provider-list {
+  margin: 24px 0;
+}
+.provider-list li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--ui-border);
+}
+.provider-list strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.provider-list span {
+  display: block;
+  margin-top: 5px;
+  font-size: 10px;
+  color: var(--ui-text-secondary);
+  overflow-wrap: anywhere;
+}
+.provider-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+  font-size: 11px;
+}
+.provider-row-actions button:hover {
+  color: var(--ui-link);
+}
+.provider-connection {
+  border-bottom: 1px solid var(--ui-border);
+  margin: 20px 0;
+  padding-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 450px) {
+  .provider-form-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}

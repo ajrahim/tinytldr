@@ -1,0 +1,11 @@
+{
+  "category": "MCP AGENT WORKFLOW",
+  "title": "From Long-Form Article to Social Pack in 4 Steps",
+  "steps": [
+    "Inspect template schema and slot limits via get_template_schema.",
+    "Distill source copy into structured JSON slots with your coding agent.",
+    "Run validate_template_data and preview_post to verify zero overflow.",
+    "Export final PNG, multi-page LinkedIn PDF, or 30fps MP4 via render_post."
+  ],
+  "outcome": "Result: Zero cloud design APIs, 100% deterministic local output."
+}

@@ -1,0 +1,18 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "designs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "owner_id", "order": "ASCENDING" },
+        { "fieldPath": "updated_at", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": [
+    { "collectionGroup": "designs", "fieldPath": "document_json", "indexes": [] },
+    { "collectionGroup": "designs", "fieldPath": "guest_key_hash", "indexes": [] },
+    { "collectionGroup": "versions", "fieldPath": "document_json", "indexes": [] },
+    { "collectionGroup": "websiteRenderLimits", "fieldPath": "ttlAt", "ttl": true, "indexes": [] }
+  ]
+}

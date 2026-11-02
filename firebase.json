@@ -1,0 +1,86 @@
+{
+  "functions": [
+    {
+      "source": "website/firebase/dist",
+      "codebase": "tinytldr",
+      "runtime": "nodejs22",
+      "predeploy": [
+        "pnpm --dir website/firebase build",
+        "pnpm --dir website/firebase deploy:prepare"
+      ]
+    }
+  ],
+  "firestore": {
+    "database": "(default)",
+    "rules": "website/firebase/firestore.rules",
+    "indexes": "website/firebase/firestore.indexes.json"
+  },
+  "storage": { "rules": "website/firebase/storage.rules" },
+  "hosting": {
+    "public": "website/dist",
+    "ignore": ["firebase.json", "**/.*", "**/*.map", "**/node_modules/**"],
+    "predeploy": ["pnpm --filter @tinytldr/website... build"],
+    "cleanUrls": true,
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "X-Frame-Options", "value": "DENY" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          {
+            "key": "Permissions-Policy",
+            "value": "camera=(), microphone=(), geolocation=()"
+          },
+          {
+            "key": "Strict-Transport-Security",
+            "value": "max-age=31536000"
+          },
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
+      {
+        "source": "/assets/**",
+        "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+      },
+      {
+        "source": "/fonts/**",
+        "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
+      },
+      {
+        "source": "/v1/**",
+        "headers": [{ "key": "Cache-Control", "value": "private, no-store" }]
+      },
+      {
+        "source": "/api/**",
+        "headers": [{ "key": "Cache-Control", "value": "private, no-store" }]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/v1/**",
+        "run": { "serviceId": "tinytldr-api", "region": "us-central1" }
+      },
+      {
+        "source": "/api/designs{,/**}",
+        "function": { "functionId": "designs", "region": "us-central1" }
+      },
+      {
+        "source": "/api/media{,/**}",
+        "function": { "functionId": "media", "region": "us-central1" }
+      },
+      {
+        "source": "/api/ai{,/**}",
+        "function": { "functionId": "ai", "region": "us-central1" }
+      },
+      { "source": "**", "destination": "/index.html" }
+    ]
+  },
+  "emulators": {
+    "auth": { "port": 9099 },
+    "firestore": { "port": 8080 },
+    "storage": { "port": 9199 },
+    "ui": { "enabled": false },
+    "singleProjectMode": true
+  }
+}

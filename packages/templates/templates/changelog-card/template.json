@@ -1,0 +1,127 @@
+{
+  "id": "changelog-card",
+  "name": "Release & Changelog Card",
+  "version": "1.0.0",
+  "kind": "static",
+  "description": "Product release and changelog announcement card with version pill, release date, headline, and categorized feature highlights.",
+  "distillationHint": "Summarize the release into a version tag (e.g. 'v0.2.0'), a bold release headline, and 3-4 concise feature/fix items.",
+  "tags": ["changelog", "release", "launch", "product", "x", "linkedin", "instagram"],
+  "defaultSize": "square",
+  "supportedSizes": ["square", "portrait", "grid-3x4", "x", "linkedin", "og", "story"],
+  "defaultTheme": "carbon",
+  "themes": {
+    "carbon": {
+      "name": "Carbon Emerald",
+      "background": "#070b12",
+      "surface": "#0f172a",
+      "surfaceElevated": "#1e293b",
+      "textPrimary": "#f8fafc",
+      "textSecondary": "#cbd5e1",
+      "textMuted": "#94a3b8",
+      "accent": "#34d399",
+      "accentSecondary": "#38bdf8",
+      "border": "#1e293b",
+      "badgeBg": "#064e3b",
+      "badgeText": "#6ee7b7"
+    },
+    "indigo": {
+      "name": "Indigo Pulse",
+      "background": "#090b1a",
+      "surface": "#111633",
+      "surfaceElevated": "#1c244f",
+      "textPrimary": "#f8fafc",
+      "textSecondary": "#c7d2fe",
+      "textMuted": "#818cf8",
+      "accent": "#818cf8",
+      "accentSecondary": "#38bdf8",
+      "border": "#263166",
+      "badgeBg": "#1e1b4b",
+      "badgeText": "#a5b4fc"
+    },
+    "light": {
+      "name": "Daylight Release",
+      "background": "#f8fafc",
+      "surface": "#ffffff",
+      "surfaceElevated": "#f1f5f9",
+      "textPrimary": "#0f172a",
+      "textSecondary": "#334155",
+      "textMuted": "#475569",
+      "accent": "#059669",
+      "accentSecondary": "#0284c7",
+      "border": "#e2e8f0",
+      "badgeBg": "#d1fae5",
+      "badgeText": "#065f46"
+    }
+  },
+  "slots": {
+    "version": {
+      "type": "string",
+      "label": "Version Tag",
+      "description": "Release version identifier (e.g., 'v0.2.0', '2026.10').",
+      "required": true,
+      "maxLength": 24
+    },
+    "releaseDate": {
+      "type": "string",
+      "label": "Release Date / Label",
+      "description": "Release date or status label.",
+      "required": false,
+      "maxLength": 36,
+      "defaultValue": "RELEASE NOTES"
+    },
+    "title": {
+      "type": "string",
+      "label": "Release Title",
+      "description": "Primary release headline.",
+      "required": true,
+      "maxLength": 100,
+      "recommendedMaxLength": 72,
+      "maxLines": 2,
+      "autofit": {
+        "minFontPx": 28,
+        "maxFontPx": 46,
+        "maxLines": 2
+      }
+    },
+    "subtitle": {
+      "type": "string",
+      "label": "Release Subtitle",
+      "description": "1-sentence overview of the release.",
+      "required": false,
+      "maxLength": 140,
+      "defaultValue": ""
+    },
+    "items": {
+      "type": "string[]",
+      "label": "Changelog Items",
+      "description": "3 to 4 key additions or improvements.",
+      "required": true,
+      "minItems": 2,
+      "maxItems": 4,
+      "maxLength": 110
+    },
+    "cta": {
+      "type": "string",
+      "label": "Install / Upgrade Command",
+      "description": "Command or link in the footer.",
+      "required": false,
+      "maxLength": 60,
+      "defaultValue": "npx tinytldr@latest"
+    }
+  },
+  "sampleData": {
+    "version": "v0.2.0",
+    "releaseDate": "OCTOBER 2026 · MIT",
+    "title": "Multi-Slide Carousels & LinkedIn Document PDFs",
+    "subtitle": "Export swipeable Instagram carousels and exact-pixel multi-page PDFs from one command.",
+    "items": [
+      "NEW · Multi-slide PNG/JPG/WebP export (out-01.png .. out-0N.png)",
+      "NEW · Exact-pixel multi-page PDF export for LinkedIn carousels",
+      "NEW · 9:16 Story & Reel safe-zone validation and visual overlays",
+      "IMPROVED · 7 static + 2 carousel templates with bundled OFL fonts"
+    ],
+    "cta": "npx tinytldr@latest"
+  },
+  "author": "AJ Rahim",
+  "license": "MIT"
+}

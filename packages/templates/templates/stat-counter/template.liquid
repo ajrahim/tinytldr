@@ -1,0 +1,41 @@
+<div class="sc-card">
+  <div class="sc-frame">
+    <header class="sc-header">
+      <span class="sc-badge" data-tt-slot="badge">{{ badge }}</span>
+      <span class="sc-tag">30 FPS DETERMINISTIC</span>
+    </header>
+
+    <main class="sc-main">
+      <div
+        class="sc-number"
+        data-tt-slot="metricTarget"
+        data-tt-counter-to="{{ metricTarget }}"
+        data-tt-counter-delay="180"
+        data-tt-counter-duration="2200"
+      >{{ metricTarget }}</div>
+
+      <h1
+        class="sc-label"
+        data-tt-slot="label"
+        data-tt-autofit="true"
+        data-tt-min-font-px="28"
+        data-tt-max-font-px="42"
+        data-tt-max-lines="2"
+      >{{ label }}</h1>
+
+      <div class="sc-meter-track" aria-hidden="true">
+        <div
+          class="sc-meter-fill"
+          style="width: {{ progressPercent }}%;"
+        ></div>
+      </div>
+
+      <p class="sc-context" data-tt-slot="context">{{ context }}</p>
+    </main>
+
+    <footer class="sc-footer">
+      <span data-tt-slot="source">{{ source }}</span>
+      <span class="sc-brand">tinytldr</span>
+    </footer>
+  </div>
+</div>

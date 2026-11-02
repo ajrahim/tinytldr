@@ -1,0 +1,48 @@
+<div class="vs-card">
+  <div class="vs-frame">
+    <header class="vs-header">
+      <span class="vs-pill">HEAD-TO-HEAD COMPARISON</span>
+      <h1
+        class="vs-title"
+        data-tt-slot="title"
+        data-tt-autofit="true"
+        data-tt-min-font-px="26"
+        data-tt-max-font-px="38"
+        data-tt-max-lines="2"
+      >{{ title }}</h1>
+    </header>
+
+    <div class="vs-grid">
+      <section class="vs-col vs-col-left">
+        <div class="col-header col-header-left" data-tt-slot="leftTitle">{{ leftTitle }}</div>
+        <ul class="col-list" data-tt-slot="leftPoints">
+          {% for pt in leftPoints %}
+            <li class="col-item">
+              <span class="marker marker-left" aria-hidden="true">–</span>
+              <span>{{ pt }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="vs-col vs-col-right">
+        <div class="col-header col-header-right" data-tt-slot="rightTitle">{{ rightTitle }}</div>
+        <ul class="col-list" data-tt-slot="rightPoints">
+          {% for pt in rightPoints %}
+            <li class="col-item">
+              <span class="marker marker-right" aria-hidden="true">✓</span>
+              <span>{{ pt }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    </div>
+
+    <footer class="vs-footer">
+      <div class="verdict-banner" data-tt-slot="verdict">
+        <span class="verdict-tag">VERDICT</span>
+        <span class="verdict-text">{{ verdict }}</span>
+      </div>
+    </footer>
+  </div>
+</div>

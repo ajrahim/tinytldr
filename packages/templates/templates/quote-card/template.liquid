@@ -1,0 +1,40 @@
+<div class="quote-card">
+  <div class="ambient-glow"></div>
+  <div class="inner-frame">
+    <header class="card-header">
+      <span class="category-pill" data-tt-slot="category">{{ category }}</span>
+      <span class="quote-glyph" aria-hidden="true">“</span>
+    </header>
+
+    <main class="quote-body-wrap">
+      <blockquote
+        class="quote-text"
+        data-tt-slot="quote"
+        data-tt-autofit="true"
+        data-tt-min-font-px="30"
+        data-tt-max-font-px="56"
+        data-tt-max-lines="6"
+      >{{ quote }}</blockquote>
+    </main>
+
+    <footer class="card-footer">
+      <div class="author-block">
+        {% if avatarUrl and avatarUrl != "" %}
+          <img class="author-avatar" src="{{ avatarUrl }}" alt="{{ author }}" data-tt-slot="avatarUrl" />
+        {% else %}
+          <div class="author-monogram" aria-hidden="true">{{ author | initials }}</div>
+        {% endif %}
+        <div class="author-meta">
+          <div class="author-name" data-tt-slot="author">{{ author }}</div>
+          {% if role and role != "" %}
+            <div class="author-role" data-tt-slot="role">{{ role }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if handle and handle != "" %}
+        <div class="footer-handle" data-tt-slot="handle">{{ handle }}</div>
+      {% endif %}
+    </footer>
+  </div>
+</div>

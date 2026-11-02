@@ -1,0 +1,89 @@
+{% assign total_slides = slides.size | plus: 2 %}
+
+<section class="tt-slide slide-cover" data-tt-slide-index="0">
+  <div class="slide-frame">
+    <header class="slide-top">
+      <span class="deck-pill" data-tt-slot="deckTag">{{ deckTag }}</span>
+      <span class="slide-counter">01 / 0{{ total_slides }}</span>
+    </header>
+
+    <main class="cover-main">
+      <h1
+        class="cover-title"
+        data-tt-slot="coverTitle"
+        data-tt-autofit="true"
+        data-tt-min-font-px="36"
+        data-tt-max-font-px="58"
+        data-tt-max-lines="3"
+      >{{ coverTitle }}</h1>
+      <p class="cover-subtitle" data-tt-slot="coverSubtitle">{{ coverSubtitle }}</p>
+    </main>
+
+    <footer class="slide-bottom">
+      <span class="slide-author" data-tt-slot="author">{{ author }}</span>
+      <span class="swipe-cue">SWIPE →</span>
+    </footer>
+  </div>
+</section>
+
+{% for item in slides %}
+  {% assign slide_num = forloop.index | plus: 1 %}
+  <section class="tt-slide slide-body" data-tt-slide-index="{{ forloop.index }}">
+    <div class="slide-frame">
+      <header class="slide-top">
+        <span class="deck-pill">INSIGHT 0{{ forloop.index }}</span>
+        <span class="slide-counter">0{{ slide_num }} / 0{{ total_slides }}</span>
+      </header>
+
+      <main class="body-main">
+        <h2
+          class="body-title"
+          data-tt-autofit="true"
+          data-tt-min-font-px="32"
+          data-tt-max-font-px="46"
+          data-tt-max-lines="2"
+        >{{ item.title }}</h2>
+        <p class="body-copy">{{ item.body }}</p>
+        {% if item.takeaway and item.takeaway != "" %}
+          <div class="takeaway-box">
+            <span class="takeaway-label">KEY POINT</span>
+            <span class="takeaway-copy">{{ item.takeaway }}</span>
+          </div>
+        {% endif %}
+      </main>
+
+      <footer class="slide-bottom">
+        <span class="slide-author">{{ author }}</span>
+        <span class="swipe-cue">NEXT →</span>
+      </footer>
+    </div>
+  </section>
+{% endfor %}
+
+<section class="tt-slide slide-closing" data-tt-slide-index="{{ slides.size | plus: 1 }}">
+  <div class="slide-frame">
+    <header class="slide-top">
+      <span class="deck-pill">TL;DR SUMMARY</span>
+      <span class="slide-counter">0{{ total_slides }} / 0{{ total_slides }}</span>
+    </header>
+
+    <main class="closing-main">
+      <h2
+        class="closing-title"
+        data-tt-slot="closingTitle"
+        data-tt-autofit="true"
+        data-tt-min-font-px="34"
+        data-tt-max-font-px="52"
+        data-tt-max-lines="2"
+      >{{ closingTitle }}</h2>
+      <div class="closing-cta-card" data-tt-slot="closingCta">
+        {{ closingCta }}
+      </div>
+    </main>
+
+    <footer class="slide-bottom">
+      <span class="slide-author">{{ author }}</span>
+      <span class="swipe-cue">SAVE & SHARE</span>
+    </footer>
+  </div>
+</section>

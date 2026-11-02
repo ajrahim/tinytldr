@@ -1,0 +1,136 @@
+{
+  "id": "stat-callout",
+  "name": "Metric & Benchmark Callout",
+  "version": "1.0.0",
+  "kind": "static",
+  "description": "High-impact metric and benchmark callout card with geometric hero number, delta badge, headline takeaway, supporting context bullets, and source attribution.",
+  "distillationHint": "Choose the single most striking quantitative figure (e.g. '43.6 fps', '10.4x', '99.98%') plus a short delta badge ('+310% faster'), a 1-sentence headline explaining what the number means, and up to 3 supporting bullet points.",
+  "tags": ["metric", "stat", "benchmark", "data", "x", "linkedin", "instagram"],
+  "defaultSize": "square",
+  "supportedSizes": ["square", "portrait", "grid-3x4", "x", "linkedin", "og", "story"],
+  "defaultTheme": "midnight",
+  "themes": {
+    "midnight": {
+      "name": "Midnight Cyan",
+      "background": "#070b14",
+      "surface": "#0f172a",
+      "surfaceElevated": "#1e293b",
+      "textPrimary": "#f8fafc",
+      "textSecondary": "#cbd5e1",
+      "textMuted": "#94a3b8",
+      "accent": "#22d3ee",
+      "accentSecondary": "#38bdf8",
+      "border": "#1e293b",
+      "badgeBg": "#083344",
+      "badgeText": "#67e8f9"
+    },
+    "emerald": {
+      "name": "Emerald Growth",
+      "background": "#04130e",
+      "surface": "#062018",
+      "surfaceElevated": "#0d3327",
+      "textPrimary": "#f0fdf4",
+      "textSecondary": "#bbf7d0",
+      "textMuted": "#86efac",
+      "accent": "#34d399",
+      "accentSecondary": "#10b981",
+      "border": "#114232",
+      "badgeBg": "#064e3b",
+      "badgeText": "#6ee7b7"
+    },
+    "light": {
+      "name": "Clean Daylight",
+      "background": "#f8fafc",
+      "surface": "#ffffff",
+      "surfaceElevated": "#f1f5f9",
+      "textPrimary": "#0f172a",
+      "textSecondary": "#334155",
+      "textMuted": "#475569",
+      "accent": "#0284c7",
+      "accentSecondary": "#2563eb",
+      "border": "#e2e8f0",
+      "badgeBg": "#e0f2fe",
+      "badgeText": "#0369a1"
+    }
+  },
+  "slots": {
+    "eyebrow": {
+      "type": "string",
+      "label": "Eyebrow Label",
+      "description": "Short uppercase context label above the metric.",
+      "required": false,
+      "maxLength": 36,
+      "defaultValue": "BENCHMARK RESULT"
+    },
+    "statValue": {
+      "type": "string",
+      "label": "Hero Metric Value",
+      "description": "Primary number or ratio (e.g., '3.44s', '10.4x', '99.9%').",
+      "required": true,
+      "maxLength": 16,
+      "recommendedMaxLength": 10,
+      "autofit": {
+        "minFontPx": 72,
+        "maxFontPx": 148,
+        "maxLines": 1
+      }
+    },
+    "deltaBadge": {
+      "type": "string",
+      "label": "Delta / Comparison Pill",
+      "description": "Short comparison badge next to the metric (e.g., '150 FRAMES @ 1080P').",
+      "required": false,
+      "maxLength": 32,
+      "defaultValue": "100% DETERMINISTIC"
+    },
+    "headline": {
+      "type": "string",
+      "label": "Headline Takeaway",
+      "description": "Clear 1-sentence explanation of what the metric proves.",
+      "required": true,
+      "maxLength": 180,
+      "recommendedMaxLength": 120,
+      "maxLines": 3,
+      "autofit": {
+        "minFontPx": 26,
+        "maxFontPx": 42,
+        "maxLines": 3
+      }
+    },
+    "highlights": {
+      "type": "string[]",
+      "label": "Supporting Highlights",
+      "description": "1 to 3 concise supporting facts or benchmark parameters.",
+      "required": false,
+      "minItems": 0,
+      "maxItems": 3,
+      "maxLength": 90,
+      "defaultValue": [
+        "1080x1080 H.264 yuv420p MP4 encoded via isolated FFmpeg pipe",
+        "Zero external network requests with bundled OFL typography"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "label": "Source / Footnote",
+      "description": "Source citation or benchmark environment note in the footer.",
+      "required": false,
+      "maxLength": 80,
+      "defaultValue": "Source: tinytldr Phase 0 Engine Benchmark"
+    }
+  },
+  "sampleData": {
+    "eyebrow": "RENDER ENGINE BENCHMARK",
+    "statValue": "3.44s",
+    "deltaBadge": "43.6 FPS EFFECTIVE",
+    "headline": "Full 5-second 1080×1080 30fps animated MP4 rendered with 100% SHA-256 frame determinism.",
+    "highlights": [
+      "Playwright Chromium WAAPI timeline seek + FFmpeg image2pipe",
+      "Zero duplicate browser runtimes or cloud API calls required",
+      "Verified h264 yuv420p faststart output on Windows, macOS & Linux"
+    ],
+    "source": "tinytldr v0.1 · Local Chromium + FFmpeg 9.0"
+  },
+  "author": "AJ Rahim",
+  "license": "MIT"
+}

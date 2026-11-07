@@ -73,4 +73,16 @@ settings. Connected agents pick up the new tools on their next session.
   and website/firebase typechecks passed; Prettier and ESLint passed on changed files.
 - `npx --yes firebase-tools@15.34.2 emulators:exec --project demo-tinytldr --only auth,firestore,storage --non-interactive "pnpm exec vitest run mcp/test/HostedOAuth.test.ts mcp/test/McpServerE2E.test.ts website/firebase/test/DesignService.test.ts"`
   passed **36 tests / 3 suites**, including the new saved-design test.
-- Unverified: IAM grant, deployment and live production check (owner action).
+- Release gate: the emulator `pnpm check` passed **44/44 test files**.
+- Deployed 2026-11-07:
+  - IAM: conditional `roles/datastore.viewer` (`McpReadDefaultDesigns`) was granted to
+    the MCP runtime service account on the `(default)` database.
+  - Image: Cloud Build `bf23e854` built `tinytldr-mcp/server:designs-20261107-1016`
+    (SUCCESS).
+  - Cloud Run: revision `tinytldr-mcp-00004-q6r` serves 100% of traffic. Concurrency 4
+    and max 2 instances are unchanged.
+  - Live checks: `/health` returned 200, the protected-resource metadata returned 200,
+    and an unauthenticated `POST /mcp` returned 401. The new revision logged no
+    warnings.
+- Unverified: authenticated `tools/list` and `get_design` in a fresh agent session
+  against a real account.

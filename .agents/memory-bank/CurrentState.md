@@ -7,9 +7,12 @@ Source baseline: 2026-10-25.
 - Hosted MCP adds owner-scoped, read-only `list_designs` and `get_design` so agents
   can reuse a user's saved website design with `render_workspace` instead of
   substituting a built-in template. Local stdio is unchanged (six tools).
-- Focused real-emulator tests passed **36 tests / 3 suites**. The runtime IAM grant
-  for the `(default)` database, redeployment and the live check are pending owner
-  action. See [scope, operations and evidence](../specs/HostedMcpSavedDesigns.md).
+- Focused real-emulator tests passed **36 tests / 3 suites**, and the full emulator
+  `pnpm check` passed 44/44 files.
+- Deployed: the MCP runtime IAM grant was added, Cloud Run `tinytldr-mcp-00004-q6r`
+  is serving, and website functions and hosting were redeployed.
+- The API was unchanged and not redeployed. See
+  [scope, operations and evidence](../specs/HostedMcpSavedDesigns.md).
 
 ## Legal pages and Library routes: 2026-11-03
 

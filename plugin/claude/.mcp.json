@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "tinytldr": {
+      "type": "http",
+      "url": "https://mcp.tinytldr.com/mcp"
+    }
+  }
+}

@@ -10,13 +10,29 @@ The calling coding agent (Claude Code, Codex, Copilot) is the only "brain" — i
 
 ## Quick Install
 
-### Claude Code
+### Plugins (hosted, recommended)
+
+The plugins bundle the tinytldr skill and connect the hosted MCP server at `https://mcp.tinytldr.com/mcp`. Sign in with your tinytldr account when prompted to render posts and reuse designs saved on [www.tinytldr.com](https://www.tinytldr.com).
+
+```sh
+# Claude Code
+claude plugin marketplace add ajrahim/tinytldr
+claude plugin install tinytldr@tinytldr
+
+# OpenAI Codex
+codex plugin marketplace add ajrahim/tinytldr
+codex plugin add tinytldr@tinytldr
+```
+
+See [plugin/claude](plugin/claude/README.md) and [plugin/codex](plugin/codex/README.md) for details.
+
+### Claude Code (local server)
 
 ```sh
 claude mcp add tinytldr -- npx -y tinytldr mcp
 ```
 
-### OpenAI Codex
+### OpenAI Codex (local server)
 
 ```sh
 codex mcp add tinytldr -- npx -y tinytldr mcp
@@ -70,6 +86,8 @@ packages/templates/   @tinytldr/templates — 12 built-in MIT templates and bund
 packages/renderer/    @tinytldr/renderer — Playwright Chromium image/PDF + ffmpeg video pipeline
 packages/cli/         tinytldr — CLI entrypoint (`mcp`, `serve`, `render`, `doctor`, `template`)
 skills/tinytldr/      SKILL.md — Agent Skill for Claude Code & Codex
+plugin/claude/        Claude Code plugin (skill + hosted MCP), listed in .claude-plugin/marketplace.json
+plugin/codex/         OpenAI Codex plugin (skill + hosted MCP), listed in .agents/plugins/marketplace.json
 .agents/              Engineering contract, architecture, specifications, decisions, and plan
 ```
 

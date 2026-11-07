@@ -64,4 +64,6 @@ Call `render_post` with:
 - `templateId`, `data`, `size`, `theme`
 - `format`: `"png"` (default for static), `"pdf"` (default for LinkedIn carousels), or `"mp4"` (for video templates)
 - `scale`: `1` (standard 1080p) or `2` (retina 2× for crisp static cards)
-- `outputPath`: destination path in the user's workspace
+- `outputPath`: destination path in the user's workspace (local stdio server only)
+
+On the hosted server (`https://mcp.tinytldr.com/mcp`), omit `outputPath`. `render_post` and `render_workspace` return short-lived signed download URLs. Share those links with the user, or download them into the workspace if the user asked for files. The hosted server is read-only for saved designs and never posts to social networks.

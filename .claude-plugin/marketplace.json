@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "tinytldr",
+  "owner": {
+    "name": "AJ Rahim",
+    "url": "https://www.tinytldr.com"
+  },
+  "metadata": {
+    "description": "Official tinytldr plugin for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "tinytldr",
+      "source": "./plugin/claude",
+      "description": "Turn notes, articles, changelogs, and diffs into social images, PDF carousels, and MP4 videos with the hosted tinytldr MCP server.",
+      "category": "design"
+    }
+  ]
+}

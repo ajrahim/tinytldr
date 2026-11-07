@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "tinytldr",
+  "displayName": "tinytldr",
+  "version": "0.1.0",
+  "description": "Turn notes, articles, changelogs, and diffs into polished social images, PDF carousels, and MP4 videos with the hosted tinytldr MCP server, including your own saved tinytldr designs.",
+  "author": {
+    "name": "AJ Rahim",
+    "url": "https://www.tinytldr.com"
+  },
+  "homepage": "https://www.tinytldr.com",
+  "repository": "https://github.com/ajrahim/tinytldr",
+  "license": "MIT",
+  "keywords": ["social-media", "images", "carousel", "video", "design", "mcp"],
+  "icon": "./assets/logo.png",
+  "documentationUrl": "https://github.com/ajrahim/tinytldr/tree/main/plugin/claude#readme",
+  "supportUrl": "https://github.com/ajrahim/tinytldr/issues",
+  "privacyPolicyUrl": "https://www.tinytldr.com/privacy",
+  "termsOfServiceUrl": "https://www.tinytldr.com/terms"
+}

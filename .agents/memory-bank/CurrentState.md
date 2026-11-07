@@ -2,6 +2,15 @@
 
 Source baseline: 2026-10-25.
 
+## Claude Code and Codex plugins: 2026-11-07
+
+- `plugin/claude` and `plugin/codex` package the `tinytldr` skill with the hosted
+  MCP server, which uses OAuth with dynamic client registration. They are listed in
+  `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json`.
+- `node scripts/PluginPackages.mjs sync|check|pack` keeps the skill copies in sync
+  and builds the submission ZIPs. Directory submissions remain owner actions. See
+  [Agent plugins](../specs/AgentPlugins.md).
+
 ## Hosted MCP saved designs: 2026-11-07
 
 - Hosted MCP adds owner-scoped, read-only `list_designs` and `get_design` so agents

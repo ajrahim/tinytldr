@@ -1,4 +1,6 @@
-# tinytldr
+<p align="center">
+  <a href="https://www.tinytldr.com"><img src=".github/assets/Banner.png" alt="tinytldr" width="100%"></a>
+</p>
 
 **Anything → a post. From Claude or Codex.**
 

@@ -56,9 +56,9 @@
   }
   .site-footer nav {
     gap: 8px;
-    flex-wrap: wrap;
     min-width: 0;
-    row-gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
   .footer-theme-toggle,
   .footer-actions {
@@ -66,5 +66,26 @@
   }
   .footer-actions {
     gap: 6px;
+  }
+  .site-footer nav > * {
+    flex-shrink: 0;
+    padding-block: 12px;
+  }
+  .footer-theme-toggle button {
+    padding: 6px 8px;
+  }
+  .footer-theme-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+/* Phone landscape: keep the footer slim so the canvas keeps its height. */
+@media (max-width: 950px) and (max-height: 500px) {
+  .site-footer {
+    height: 36px;
   }
 }

@@ -337,6 +337,66 @@ describe.skipIf(!hasFirebaseEmulators)("Compact icon header and editable saved v
     await context.close();
   });
 
+  it("adapts the footer and prompt to phone portrait and landscape without changing desktop", async () => {
+    const promptExpanded = (page: Page) =>
+      page.getByRole("button", { name: "Prompt", exact: true }).getAttribute("aria-expanded");
+    const editorsToggle = (page: Page) =>
+      page.getByRole("button", { name: "Source editors", exact: true });
+
+    const desktop = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    let page = await desktop.newPage();
+    await open(page, "", false);
+    await editorsToggle(page).click();
+    expect(await promptExpanded(page)).toBe("true");
+    const desktopNight = page.getByRole("button", { name: "Night", exact: true });
+    expect(await desktopNight.innerText()).toBe("Night");
+    await desktop.close();
+
+    const portrait = await browser.newContext({
+      viewport: { width: 320, height: 700 },
+      isMobile: true,
+      hasTouch: true,
+    });
+    page = await portrait.newPage();
+    await open(page, "", false);
+    const footer = page.getByRole("contentinfo", { name: "Site footer" });
+    expect((await footer.boundingBox())!.height).toBe(48);
+    const rows = await footer.locator("nav > *, .footer-actions > *").evaluateAll((items) =>
+      items.map((item) => {
+        const box = item.getBoundingClientRect();
+        return Math.round(box.top + box.height / 2);
+      }),
+    );
+    expect(Math.max(...rows) - Math.min(...rows)).toBeLessThanOrEqual(1);
+    for (const name of ["Day", "Night"]) {
+      const button = footer.getByRole("button", { name, exact: true });
+      expect((await button.boundingBox())!.width).toBeLessThanOrEqual(32);
+    }
+    expect(await promptExpanded(page)).toBe("true");
+    await editorsToggle(page).click();
+    await expect.poll(() => promptExpanded(page)).toBe("false");
+    await editorsToggle(page).click();
+    await expect.poll(() => promptExpanded(page)).toBe("true");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
+    await portrait.close();
+
+    const landscape = await browser.newContext({
+      viewport: { width: 844, height: 390 },
+      isMobile: true,
+      hasTouch: true,
+    });
+    page = await landscape.newPage();
+    await open(page, "", false);
+    expect(
+      (await page.getByRole("contentinfo", { name: "Site footer" }).boundingBox())!.height,
+    ).toBe(36);
+    expect(await promptExpanded(page)).toBe("false");
+    await page.getByRole("button", { name: "Prompt", exact: true }).click();
+    const composer = (await page.getByRole("form", { name: "AI design composer" }).boundingBox())!;
+    expect(composer.height).toBeLessThanOrEqual(90);
+    await landscape.close();
+  });
+
   it("preserves mounted editor undo, split ratio, and iframe across visibility changes, and reports hidden invalid drafts after reload", async () => {
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     const page = await context.newPage();

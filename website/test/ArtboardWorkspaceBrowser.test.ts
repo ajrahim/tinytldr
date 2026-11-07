@@ -605,7 +605,8 @@ describe.skipIf(!hasFirebaseEmulators)("Horizontal artboard workspace", () => {
     const rect = (await canvas.boundingBox())!;
     const session = await context.newCDPSession(page);
     const zoom = Number(await canvas.getAttribute("data-zoom"));
-    const y = rect.y + Math.min(100, rect.height / 2);
+    // Pinch on empty canvas below the artboards; page metadata inputs keep their own gestures.
+    const y = rect.y + rect.height - 24;
     await session.send("Input.dispatchTouchEvent", {
       type: "touchStart",
       touchPoints: [

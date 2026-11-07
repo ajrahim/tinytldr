@@ -42,7 +42,7 @@ export function SiteFooter(props: {
               props.onSetTheme("light", event.currentTarget.getBoundingClientRect())
             }
           >
-            <Sun size={13} aria-hidden="true" /> Day
+            <Sun size={13} aria-hidden="true" /> <span className="footer-theme-label">Day</span>
           </button>
           <button
             type="button"
@@ -52,7 +52,7 @@ export function SiteFooter(props: {
               props.onSetTheme("dark", event.currentTarget.getBoundingClientRect())
             }
           >
-            <Moon size={13} aria-hidden="true" /> Night
+            <Moon size={13} aria-hidden="true" /> <span className="footer-theme-label">Night</span>
           </button>
         </div>
       </div>

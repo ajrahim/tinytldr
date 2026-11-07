@@ -28,6 +28,12 @@ import type { WorkspaceSourceRecovery } from "../lib/WorkspacePages.js";
 import { Dropdown } from "./Dropdown.js";
 import { DropdownSelect } from "./DropdownSelect.js";
 
+// Keep in sync with the phone breakpoints in AiComposer.css and SiteFooter.css.
+const PHONE_LANDSCAPE_QUERY = "(max-width: 950px) and (max-height: 500px)";
+const PHONE_QUERY = `(max-width: 650px), ${PHONE_LANDSCAPE_QUERY}`;
+const matches = (query: string) =>
+  typeof window !== "undefined" && !!window.matchMedia?.(query).matches;
+
 export function AiComposer(props: {
   userId?: string;
   document: WorkspaceProject | null;
@@ -41,6 +47,7 @@ export function AiComposer(props: {
   onHeightChange: (height: number) => void;
   controlsRoot: HTMLDivElement | null;
   workspaceVisible: boolean;
+  sourceEditorsOpen?: boolean;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
@@ -48,7 +55,21 @@ export function AiComposer(props: {
   const alive = useRef(true);
   const listId = useId();
   const promptId = useId();
-  const [promptVisible, setPromptVisible] = useState(true);
+  // A landscape phone has no room for both the canvas and the prompt, so it starts collapsed.
+  const [promptVisible, setPromptVisible] = useState(() => !matches(PHONE_LANDSCAPE_QUERY));
+  const collapsedForEditors = useRef(false);
+  useEffect(() => {
+    if (props.sourceEditorsOpen) {
+      if (!matches(PHONE_QUERY)) return;
+      setPromptVisible((visible) => {
+        collapsedForEditors.current = visible;
+        return false;
+      });
+    } else if (collapsedForEditors.current) {
+      collapsedForEditors.current = false;
+      setPromptVisible(true);
+    }
+  }, [props.sourceEditorsOpen]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [targets, setTargets] = useState<string[]>([]);

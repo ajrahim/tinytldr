@@ -659,6 +659,7 @@ export function PlaygroundPage(props: PlaygroundPageProps) {
                           onHeightChange={setComposerHeight}
                           controlsRoot={promptControlsRoot}
                           workspaceVisible={props.workspaceVisible && !libraryOpen}
+                          sourceEditorsOpen={sourceEditorsOpen}
                         />
                       }
                     />

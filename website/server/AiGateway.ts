@@ -167,13 +167,28 @@ export function createAiGateway(services: AiGatewayServices) {
             generated,
             action.request.targetPageIds,
           );
-        } catch {
+        } catch (error) {
+          if (
+            error instanceof z.ZodError &&
+            error.issues.some((issue) => issue.message === "Designs must be smaller than 400 KB.")
+          )
+            throw new AiRequestError(
+              502,
+              "size",
+              "The generated design exceeds the 400 KB document limit. Use a smaller image or request a smaller change. Nothing was applied.",
+            );
           throw new AiRequestError(
             502,
             "scope",
             "The provider changed content outside the selected artboards. Nothing was applied.",
           );
         }
+        if (Buffer.byteLength(JSON.stringify(document), "utf8") > 500_000)
+          throw new AiRequestError(
+            502,
+            "size",
+            "The generated design exceeds the 500 KB UTF-8 save limit. Use a smaller image or request a smaller change. Nothing was applied.",
+          );
         return Response.json(AiGenerationResponseSchema.parse({ document }), { headers });
       }
       let connections: unknown;

@@ -1,5 +1,17 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { chromium, type Browser, type Page } from "playwright";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import {
+  ChromiumRenderer,
+  inspectPdfBuffer,
+  inspectPngHeader,
+  probeVideoFile,
+  renderWorkspaceProject,
+} from "@tinytldr/renderer";
 import { WorkspaceProjectSchema } from "@tinytldr/core";
 import { hasFirebaseEmulators, startWorkspaceTestServer } from "./WorkspaceServerFixture.js";
 import { downloadSource, setSource, showSourceEditors } from "./SourceEditorFixture.js";
@@ -9,7 +21,7 @@ import { chooseDropdown } from "./DropdownFixture.js";
 describe.skipIf(!hasFirebaseEmulators)("Floating AI composer", () => {
   let browser: Browser;
   let site: Awaited<ReturnType<typeof startWorkspaceTestServer>>;
-  let mode: "normal" | "deferred" | "error" | "invalid-template" = "normal";
+  let mode: "normal" | "deferred" | "error" | "invalid-template" | "image" = "normal";
   let release: (() => void) | undefined;
   const key = "test-private-provider-token-4101";
   beforeAll(async () => {
@@ -26,7 +38,10 @@ describe.skipIf(!hasFirebaseEmulators)("Floating AI composer", () => {
           return Response.json({
             choices: [{ message: { content: "OK" }, finish_reason: "stop" }],
           });
-        const packet = JSON.parse(text) as { currentProject: unknown };
+        const packet = JSON.parse(text) as {
+          currentProject: unknown;
+          imageAssets: { name: string; source: string }[];
+        };
         const project = WorkspaceProjectSchema.parse(packet.currentProject);
         const currentMode = mode;
         if (currentMode === "deferred")
@@ -40,6 +55,23 @@ describe.skipIf(!hasFirebaseEmulators)("Floating AI composer", () => {
           board.template.manifest.sampleData = board.data;
           board.template.stylesCss += "\nh1 { letter-spacing: 1px; }";
           if (currentMode === "invalid-template") board.template.liquidTemplate = "{% if %}";
+          if (currentMode === "image") {
+            project.size = { width: 160, height: 96 };
+            board.data.logo = packet.imageAssets[0]!.source;
+            board.template.manifest.slots.logo = {
+              type: "image",
+              label: "Logo",
+              description: "The original uploaded logo",
+              required: true,
+            };
+            board.template.manifest.kind = "video";
+            board.template.manifest.durationMs = 500;
+            board.template.manifest.fps = 12;
+            board.template.manifest.sampleData = board.data;
+            board.template.liquidTemplate = '<img id="placed-logo" src="{{ logo }}" alt="Logo">';
+            board.template.stylesCss =
+              "#placed-logo { position:absolute; inset:0; width:100%; height:100%; object-fit:fill; }";
+          }
         }
         return Response.json({
           choices: [{ message: { content: JSON.stringify(project) }, finish_reason: "stop" }],
@@ -483,10 +515,10 @@ describe.skipIf(!hasFirebaseEmulators)("Floating AI composer", () => {
     const targeted = await project(page);
     expect(await page.getByLabel("Describe your idea").inputValue()).toBe("");
     expect(await page.getByRole("button", { name: "Remove context reference.png" }).count()).toBe(
-      1,
+      0,
     );
     expect(await page.getByRole("button", { name: "Remove context Creative brief" }).count()).toBe(
-      1,
+      0,
     );
     expect(await page.locator(".composer-chips").innerText()).toContain("@Cover");
     expect(targeted.pages[0]).toEqual(original.pages[0]);
@@ -522,11 +554,263 @@ describe.skipIf(!hasFirebaseEmulators)("Floating AI composer", () => {
     expect(accounts.docs.every((doc) => !JSON.stringify(doc.data()).includes(key))).toBe(true);
     await context.close();
   });
+  it("places the original logo, clears submitted context, saves/reloads it and renders its pixels in PNG/PDF/video", async () => {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    const page = await context.newPage();
+    const renderer = new ChromiumRenderer();
+    const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), "tinytldr-ai-image-"));
+    try {
+      await open(page);
+      await connect(page);
+      await page.getByRole("button", { name: "New design", exact: true }).click();
+      await page.waitForURL(/\/d\/[0-9a-f-]+$/);
+      const logo = await page.evaluate(() => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 8;
+        canvas.height = 4;
+        const drawing = canvas.getContext("2d")!;
+        drawing.fillStyle = "rgb(24,136,208)";
+        drawing.fillRect(0, 0, 8, 4);
+        return canvas.toDataURL("image/png");
+      });
+      await page.getByLabel("Attach reference files").setInputFiles({
+        name: "exact-logo.png",
+        mimeType: "image/png",
+        buffer: Buffer.from(logo.split(",")[1]!, "base64"),
+      });
+      const chip = page.getByRole("button", { name: "Remove context exact-logo.png" });
+      await chip.waitFor();
+      await expect
+        .poll(() => page.getByText("Reading context...", { exact: true }).count())
+        .toBe(0);
+      mode = "image";
+      await page.getByLabel("Describe your idea").fill("Add this exact image as my logo.");
+      await page.getByRole("button", { name: "Generate design" }).click();
+      await expect.poll(() => chip.count()).toBe(0);
+      const preview = page.frameLocator('iframe[title="Design preview"]').locator("#placed-logo");
+      await expect
+        .poll(() => preview.evaluate((image) => (image as HTMLImageElement).naturalWidth))
+        .toBe(8);
+      expect(await preview.getAttribute("src")).toBe(logo);
+      const generated = await project(page);
+      expect(generated.pages[0]!.data.logo).toBe(logo);
+      expect(generated.pages[0]!.template.manifest.sampleData.logo).toBe(logo);
+      expect(JSON.stringify(generated)).not.toContain("tinytldr-image:");
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+      const designId = new URL(page.url()).pathname.split("/").at(-1)!;
+      await expect.poll(async () => (await site.design(designId)).document).toEqual(generated);
+      await page.reload();
+      await expect
+        .poll(() => preview.evaluate((image) => (image as HTMLImageElement).naturalWidth))
+        .toBe(8);
+      expect(await preview.getAttribute("src")).toBe(logo);
+      const restored = await project(page);
+      expect(restored).toEqual(generated);
+      await page.getByRole("button", { name: "My Library", exact: true }).click();
+      await page.getByRole("button", { name: "Preview exact-logo", exact: true }).waitFor();
+      await page.getByRole("button", { name: "My Library", exact: true }).click();
+      for (const format of ["png", "pdf", "mp4"] as const) {
+        const outputPath = path.join(outputDir, `logo.${format}`);
+        const rendered = await renderWorkspaceProject({
+          document: restored,
+          format,
+          outputPath,
+          renderer,
+        });
+        expect(rendered.outputPaths).toEqual([outputPath]);
+        const bytes = await fs.readFile(outputPath);
+        if (format === "pdf") {
+          expect(inspectPdfBuffer(bytes)).toMatchObject({
+            pageCount: 1,
+            widthPxAt96Dpi: 160,
+            heightPxAt96Dpi: 96,
+          });
+          expect(bytes.toString("latin1")).toMatch(/\/Subtype\s*\/Image/);
+          continue;
+        }
+        let png = bytes;
+        if (format === "mp4") {
+          expect(await probeVideoFile(outputPath)).toMatchObject({
+            width: 160,
+            height: 96,
+            avgFrameRate: "12/1",
+            durationSeconds: 0.5,
+            codecName: "h264",
+            pixFmt: "yuv420p",
+          });
+          const decoded = await promisify(execFile)(
+            "ffmpeg",
+            [
+              "-v",
+              "error",
+              "-i",
+              outputPath,
+              "-frames:v",
+              "1",
+              "-f",
+              "image2pipe",
+              "-vcodec",
+              "png",
+              "-",
+            ],
+            { encoding: "buffer", windowsHide: true },
+          );
+          png = decoded.stdout;
+        }
+        expect(inspectPngHeader(png)).toEqual({ width: 160, height: 96 });
+        const pixel = await page.evaluate(
+          async (dataUrl) => {
+            const image = new Image();
+            image.src = dataUrl;
+            await image.decode();
+            const canvas = document.createElement("canvas");
+            canvas.width = image.width;
+            canvas.height = image.height;
+            const drawing = canvas.getContext("2d")!;
+            drawing.drawImage(image, 0, 0);
+            return [...drawing.getImageData(80, 48, 1, 1).data];
+          },
+          `data:image/png;base64,${png.toString("base64")}`,
+        );
+        for (const [index, value] of [24, 136, 208, 255].entries())
+          expect(Math.abs(pixel[index]! - value)).toBeLessThanOrEqual(format === "png" ? 0 : 3);
+      }
+    } finally {
+      await context.close();
+      await renderer.close();
+      await fs.rm(outputDir, { recursive: true, force: true });
+    }
+  });
+  it("preserves pending generation and attachments across legal and Library surface navigation", async () => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    try {
+      await open(page);
+      await connect(page);
+      await page.getByLabel("Attach reference files").setInputFiles({
+        name: "route-context.txt",
+        mimeType: "text/plain",
+        buffer: Buffer.from("Context that survives legal and Library navigation."),
+      });
+      await page.getByRole("button", { name: "Remove context route-context.txt" }).waitFor();
+      await page.getByLabel("Describe your idea").fill("Apply this after I read the policy.");
+      mode = "deferred";
+      await page.getByRole("button", { name: "Generate design" }).click();
+      await expect.poll(() => !!release).toBe(true);
+      await page
+        .locator(".site-footer")
+        .getByRole("link", { name: "Privacy", exact: true })
+        .click();
+      await page.getByRole("heading", { name: "Privacy Policy", exact: true }).waitFor();
+      expect(
+        await page.getByRole("dialog", { name: "Prompt history", exact: true }).isVisible(),
+      ).toBe(false);
+      await page.locator(".site-footer").getByRole("link", { name: "Terms", exact: true }).click();
+      const historyLength = await page.evaluate(() => window.history.length);
+      release!();
+      release = undefined;
+      await expect
+        .poll(() => page.locator('.composer-history-log [data-status="succeeded"]').count())
+        .toBe(1);
+      await expect
+        .poll(() => page.frameLocator('iframe[title="Design preview"]').locator("h1").textContent())
+        .toBe("AI Page 1");
+      expect(await page.evaluate(() => window.history.length)).toBe(historyLength);
+      expect(
+        await page.getByRole("heading", { name: "Terms and Conditions", exact: true }).isVisible(),
+      ).toBe(true);
+      expect(
+        await page.getByRole("dialog", { name: "Prompt history", exact: true }).isVisible(),
+      ).toBe(false);
+      await page.goBack({ waitUntil: "commit" });
+      await page.getByRole("heading", { name: "Privacy Policy", exact: true }).waitFor();
+      await page.goBack({ waitUntil: "commit" });
+      await expect.poll(() => page.getByLabel("Describe your idea").inputValue()).toBe("");
+      expect(
+        await page.getByRole("button", { name: "Remove context route-context.txt" }).count(),
+      ).toBe(0);
+      const generated = await project(page);
+      expect(generated.pages[0]!.data.headline).toBe("AI Page 1");
+      const input = page.getByLabel("Attach reference files");
+      await input.setInputFiles({
+        name: "next-route.txt",
+        mimeType: "text/plain",
+        buffer: Buffer.from("The next unsent context."),
+      });
+      await page.getByRole("button", { name: "Remove context next-route.txt" }).waitFor();
+      await page.getByLabel("Describe your idea").fill("An unsent follow-up prompt.");
+      await page.getByRole("button", { name: "My Library", exact: true }).click();
+      expect(new URL(page.url()).pathname).toBe("/library");
+      await page
+        .locator(".site-footer")
+        .getByRole("link", { name: "Privacy", exact: true })
+        .click();
+      await page.getByRole("link", { name: "Back to workspace", exact: true }).click();
+      expect(await page.getByLabel("Describe your idea").inputValue()).toBe(
+        "An unsent follow-up prompt.",
+      );
+      expect(
+        await page.getByRole("button", { name: "Remove context next-route.txt" }).count(),
+      ).toBe(1);
+      expect(await project(page)).toEqual(generated);
+      expect(site.aiRequests).toHaveLength(1);
+      expect(site.aiRequests[0]!.context.map((item) => item.name)).toEqual(["route-context.txt"]);
+    } finally {
+      release?.();
+      release = undefined;
+      await context.close();
+    }
+  });
+
+  it("clears only submitted attachments when new context arrives during a successful request", async () => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    try {
+      await open(page);
+      await connect(page);
+      const input = page.getByLabel("Attach reference files");
+      await input.setInputFiles({
+        name: "submitted.txt",
+        mimeType: "text/plain",
+        buffer: Buffer.from("The submitted context"),
+      });
+      await page.getByRole("button", { name: "Remove context submitted.txt" }).waitFor();
+      await page.getByLabel("Describe your idea").fill("Update this design.");
+      mode = "deferred";
+      await page.getByRole("button", { name: "Generate design" }).click();
+      await expect.poll(() => !!release).toBe(true);
+      await input.setInputFiles({
+        name: "next-prompt.txt",
+        mimeType: "text/plain",
+        buffer: Buffer.from("Keep this for the next prompt"),
+      });
+      await page.getByRole("button", { name: "Remove context next-prompt.txt" }).waitFor();
+      release!();
+      release = undefined;
+      await expect
+        .poll(() => page.getByRole("button", { name: "Remove context submitted.txt" }).count())
+        .toBe(0);
+      expect(
+        await page.getByRole("button", { name: "Remove context next-prompt.txt" }).count(),
+      ).toBe(1);
+      expect(site.aiRequests[0]!.context.map((item) => item.name)).toEqual(["submitted.txt"]);
+    } finally {
+      await context.close();
+    }
+  });
   it("rejects late results after source edits, supports cancellation, and preserves drafts on provider or compilation failures", async () => {
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     const page = await context.newPage();
     await open(page);
     await connect(page);
+    await page.getByLabel("Attach reference files").setInputFiles({
+      name: "preserved.txt",
+      mimeType: "text/plain",
+      buffer: Buffer.from("Keep this context on every failed or cancelled result."),
+    });
+    const preserved = page.getByRole("button", { name: "Remove context preserved.txt" });
+    await preserved.waitFor();
+    await expect.poll(() => preserved.isEnabled()).toBe(true);
     mode = "deferred";
     await page.getByLabel("Describe your idea").fill("Make a change");
     await page.getByRole("button", { name: "Generate design" }).click();
@@ -538,6 +822,7 @@ describe.skipIf(!hasFirebaseEmulators)("Floating AI composer", () => {
     release!();
     release = undefined;
     expect((await project(page)).pages[0]!.data.headline).toBe("Less, but better.");
+    expect(await preserved.count()).toBe(1);
     await page.getByRole("button", { name: "Generate design" }).click();
     await expect.poll(() => !!release).toBe(true);
     await page.getByRole("button", { name: "Cancel generation" }).click();
@@ -546,11 +831,13 @@ describe.skipIf(!hasFirebaseEmulators)("Floating AI composer", () => {
     await expect
       .poll(() => page.locator(".ai-composer").textContent())
       .toContain("Generation cancelled");
+    expect(await preserved.count()).toBe(1);
     mode = "error";
     await page.getByRole("button", { name: "Generate design" }).click();
     await expect
       .poll(() => page.locator(".ai-composer [role=alert]").textContent())
       .toContain("quota or rate limit");
+    expect(await preserved.count()).toBe(1);
     expect(await page.locator(".ai-composer").textContent()).not.toContain(key);
     const unchanged = await project(page);
     mode = "invalid-template";
@@ -560,6 +847,7 @@ describe.skipIf(!hasFirebaseEmulators)("Floating AI composer", () => {
       .poll(() => page.getByRole("button", { name: "Generate design" }).isEnabled())
       .toBe(true);
     expect(await project(page)).toEqual(unchanged);
+    expect(await preserved.count()).toBe(1);
     await showSourceEditors(page);
     await setSource(page, "JSON", "{ unfinished");
     const before = site.aiRequests.length;

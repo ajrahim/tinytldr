@@ -74,13 +74,13 @@ export function useAiGeneration(options: {
     setError(message);
   }, [snapshot, options.providerRevision]);
 
-  const generate = async (request: AiGenerationInput) => {
-    if (active.current) return;
+  const generate = async (request: AiGenerationInput): Promise<boolean> => {
+    if (active.current) return false;
     setError(null);
     setMessage(null);
     if (!options.userId) {
       setError("Sign in before generating.");
-      return;
+      return false;
     }
     const controller = new AbortController();
     const before = options.recovery;
@@ -100,7 +100,7 @@ export function useAiGeneration(options: {
     setBusy(true);
     try {
       const project = await generateAiDesign(request, controller.signal);
-      if (controller.signal.aborted || active.current?.controller !== controller) return;
+      if (controller.signal.aborted || active.current?.controller !== controller) return false;
       if (
         latest.current.userId !== owner ||
         latest.current.snapshot !== initial ||
@@ -138,6 +138,7 @@ export function useAiGeneration(options: {
       });
       setMessage("Design updated as an unsaved draft.");
       finishHistory(historyId, "succeeded", "Design updated as an unsaved draft.");
+      return true;
     } catch (failure) {
       if (active.current?.controller === controller) {
         const message =
@@ -147,6 +148,7 @@ export function useAiGeneration(options: {
         setError(message);
         finishHistory(historyId, "failed", message);
       }
+      return false;
     } finally {
       if (active.current?.controller === controller) active.current = null;
       if (!controller.signal.aborted) setBusy(false);

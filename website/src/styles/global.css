@@ -171,6 +171,15 @@ html.dark .notice-error {
   min-width: 0;
   overflow: hidden;
 }
+.workspace-view {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.workspace-view[hidden] {
+  display: none;
+}
 
 .ui-surface {
   background-color: var(--ui-surface);

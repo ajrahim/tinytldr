@@ -131,7 +131,7 @@ export function AiComposer(props: {
       return false;
     }
     setContextError(null);
-    setContext(checked.data);
+    setContext([...context, ...checked.data.slice(context.length)]);
     return true;
   };
   const submit = () => {
@@ -178,7 +178,11 @@ export function AiComposer(props: {
       return;
     }
     setTextOpen(false);
-    void generation.generate(checked.data);
+    const submittedContext = context;
+    void generation.generate(checked.data).then((applied) => {
+      if (!applied || !alive.current) return;
+      setContext((current) => current.filter((item) => !submittedContext.includes(item)));
+    });
   };
   const chooseModel = async (model: string) => {
     if (!selected || modelRequest.current) return;

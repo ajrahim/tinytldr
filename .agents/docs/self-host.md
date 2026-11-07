@@ -52,7 +52,8 @@ linked into the MIT packages. Preserve the accompanying binary/font notices.
 
 - **https://www.tinytldr.com**: Firebase Hosting static website and function rewrites.
 - **https://api.tinytldr.com**: Firebase-authenticated render API backed by a
-  Chromium/FFmpeg Cloud Run container with bounded work and private artifacts.
+  Chromium/FFmpeg Cloud Run container with bounded work and private artifacts,
+  proxied by a separate Firebase Hosting site.
 - **https://mcp.tinytldr.com/mcp**: existing hosted OAuth MCP endpoint, unchanged.
 - Firebase Auth, Firestore, Storage, Functions, and Secret Manager own account/design/media/AI
   boundaries. [Setup](./FirebaseBackend.md) and [AI credentials](./AiConnections.md)
@@ -82,6 +83,18 @@ Secret Manager binding. The committed demo default cannot deploy to production.
 `pnpm deploy:hosted api` builds/deploys the separate API container first;
 `pnpm deploy:hosted` then deploys Firebase Hosting, functions, Firestore and Storage rules with
 the explicitly selected project from the ignored configuration.
+On the first deployment, Firebase requires explicit acknowledgement before enabling
+the idempotent account-deletion triggers' retry policies. After reviewing the CLI's
+planned functions, deploy those services with:
+
+```powershell
+npx --yes firebase-tools@15.34.2 deploy --project YOUR_PROJECT_ID --only "firestore,storage,functions:tinytldr" --non-interactive --force
+pnpm deploy:hosted hosting
+```
+
+Retries incur normal execution charges. Do not use `--force` to bypass unexpected
+function/index deletions or other unreviewed deployment changes.
+
 [Firebase configuration](../../firebase.json) defines Hosting and Functions.
 The [API Dockerfile](../../Dockerfile.Api) and
 [Cloud Build configuration](../../cloudbuild.api.yaml) define that container.
@@ -94,6 +107,9 @@ Configure a separate persistent Firebase Storage bucket in the function
 environment as `TINYTLDR_FIREBASE_STORAGE_BUCKET`, and set the website's
 `VITE_TINYTLDR_FIREBASE_MEDIA_URL` (`/api/media` on Hosting). The media function's
 runtime identity needs object create/get/list/delete access to that bucket.
+Grant this explicitly to both the media function runtime and the Auth-deletion
+trigger runtime; bucket ownership alone does not grant object access. A
+bucket-scoped `roles/storage.objectUser` binding supplies those operations.
 It must remain nonpublic and must not inherit the temporary bucket's deletion
 lifecycle. Uploads and rendered exports remain in the account until deleted.
 The [Firestore configuration](../../website/firebase/firestore.indexes.json)
@@ -103,6 +119,14 @@ No bucket signing key is needed for website API downloads.
 Firebase project IDs, web SDK API keys, app IDs, and auth domains are public
 configuration. Service-account keys, AI/provider credentials, signing keys,
 and shared local API secrets never belong in those templates or `VITE_*`.
+
+Create a separate site with `firebase hosting:sites:create YOUR_API_SITE --project YOUR_PROJECT_ID`.
+Set `TINYTLDR_API_HOSTING_SITE` to that Firebase Hosting site to proxy all
+API-domain paths to Cloud Run without serving the website or its SPA fallback.
+The deployment helper publishes both Hosting sites. Connect `www.tinytldr.com`
+to the website site and `api.tinytldr.com` to the API site, then use each domain's
+actual DNS records from Firebase. Leaving the API site unset preserves independent
+API-domain routing for other installations.
 
 Connect custom domains and verify DNS/TLS separately. Committing these files
 does not deploy services, change DNS, delete existing data, or validate live

@@ -1,6 +1,6 @@
 import type { SizePresetId } from "../lib/BrowserCompiler.js";
 
-export type RoutePageId = "playground" | "docs" | "authCallback";
+export type RoutePageId = "playground" | "library" | "privacy" | "terms" | "docs" | "authCallback";
 
 export type DocsSectionId =
   "quickstart" | "workflow" | "tools" | "authoring" | "selfHost" | "contribute";
@@ -44,6 +44,9 @@ export function parseLocationRoute(pathname: string, search: string): ParsedRout
     rawSize && VALID_PRESETS.has(rawSize as SizePresetId) ? (rawSize as SizePresetId) : undefined;
   const initialTheme = params.get("theme") ?? undefined;
 
+  if (cleanPath === "/privacy") return { page: "privacy", pathname: cleanPath };
+  if (cleanPath === "/terms") return { page: "terms", pathname: cleanPath };
+  if (cleanPath === "/library") return { page: "library", pathname: cleanPath };
   if (cleanPath === "/auth/callback") return { page: "authCallback", pathname: cleanPath };
   const designMatch = /^\/(d|local)\/([0-9a-f-]{36})$/i.exec(cleanPath);
   if (designMatch) {

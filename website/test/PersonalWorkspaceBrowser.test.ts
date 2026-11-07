@@ -35,6 +35,78 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
     await showSourceEditors(page);
   }
 
+  it("preserves unsaved owned sources through surface navigation and reloads the signed-in Library route", async () => {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    try {
+      await page.goto(`${site.baseUrl}/library`);
+      await page.getByRole("heading", { name: "Sign in to open your library." }).waitFor();
+      await site.signIn(page);
+      await page.getByLabel("Upload storage", { exact: true }).waitFor();
+      expect(new URL(page.url()).pathname).toBe("/library");
+      await page.reload();
+      await page.getByLabel("Upload storage", { exact: true }).waitFor();
+      expect(new URL(page.url()).pathname).toBe("/library");
+      await page.getByRole("button", { name: "New design", exact: true }).click();
+      await expect
+        .poll(
+          async () => ({
+            path: new URL(page.url()).pathname,
+            errors: await page.getByRole("alert").allTextContents(),
+          }),
+          { timeout: 10_000 },
+        )
+        .toMatchObject({
+          path: expect.stringMatching(/^\/d\/[0-9a-f-]+$/),
+          errors: [],
+        });
+      const path = new URL(page.url()).pathname;
+      const id = path.split("/").at(-1)!;
+      const saved = await site.design(id);
+      const welcome = page.getByRole("dialog", { name: "Welcome to tinytldr." });
+      if (await welcome.isVisible())
+        await welcome.getByRole("button", { name: "Start Creating" }).click();
+      await setSource(page, "HTML", "<h1>Unsaved owned content</h1>");
+      await setSource(page, "CSS", "h1 { color: #654321; }");
+      await setSource(page, "JSON", "{ unsaved owned JSON");
+      await page.getByLabel("Describe your idea").fill("Keep this owned draft prompt.");
+      await page.getByRole("button", { name: "My Library", exact: true }).click();
+      expect(new URL(page.url()).pathname).toBe("/library");
+      await page
+        .locator(".site-footer")
+        .getByRole("link", { name: "Privacy", exact: true })
+        .click();
+      await page.getByRole("heading", { name: "Privacy Policy", exact: true }).waitFor();
+      await page.goBack({ waitUntil: "commit" });
+      await page.getByRole("region", { name: "My Library", exact: true }).waitFor();
+      await page.goBack({ waitUntil: "commit" });
+      await page.getByRole("textbox", { name: "Template JSON", exact: true }).waitFor();
+      expect(new URL(page.url()).pathname).toBe(path);
+      expect(
+        await page.getByRole("textbox", { name: "Template HTML", exact: true }).textContent(),
+      ).toBe("<h1>Unsaved owned content</h1>");
+      expect(
+        await page.getByRole("textbox", { name: "Template CSS", exact: true }).textContent(),
+      ).toBe("h1 { color: #654321; }");
+      expect(
+        await page.getByRole("textbox", { name: "Template JSON", exact: true }).textContent(),
+      ).toBe("{ unsaved owned JSON");
+      expect(await page.getByLabel("Describe your idea").inputValue()).toBe(
+        "Keep this owned draft prompt.",
+      );
+      expect((await site.design(id)).document).toEqual(saved.document);
+      await page.goForward({ waitUntil: "commit" });
+      await page.getByRole("region", { name: "My Library", exact: true }).waitFor();
+      await page.getByRole("button", { name: "My Library", exact: true }).click();
+      expect(new URL(page.url()).pathname).toBe(path);
+      expect(
+        await page.getByRole("textbox", { name: "Template JSON", exact: true }).textContent(),
+      ).toBe("{ unsaved owned JSON");
+    } finally {
+      await context.close();
+    }
+  });
+
   it("sections account and browser designs compactly, with accessible hover and keyboard help in both themes", async () => {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const page = await context.newPage();

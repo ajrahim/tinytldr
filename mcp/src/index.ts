@@ -11,6 +11,7 @@ import {
 import { ChromiumRenderer, previewTemplatePost, validateTemplatePost } from "@tinytldr/renderer";
 import { getTemplateManifest, listTemplates } from "@tinytldr/templates";
 import { registerRenderTools, type RenderToolOptions } from "./RegisterRenderTools.js";
+import { registerDesignTools, type SavedDesignSource } from "./RegisterDesignTools.js";
 
 export function listSizes(): readonly SizePresetDefinition[] {
   return Object.values(SIZE_PRESETS);
@@ -27,10 +28,15 @@ export function createTinytldrMcpServer(options?: {
   signal?: AbortSignal;
   artifacts?: RenderToolOptions["artifacts"];
   runRender?: RenderToolOptions["runRender"];
+  designs?: SavedDesignSource;
 }): TinytldrMcpServerInstance {
   const ownsRenderer = !options?.renderer;
   const renderer = options?.renderer ?? new ChromiumRenderer();
   const run = options?.runRender ?? (async <T>(operation: () => Promise<T>) => operation());
+  const designs = options?.designs;
+  const savedDesignHint = designs
+    ? " Built-in templates only: when the user names their own saved template or design, call list_designs and get_design instead."
+    : "";
 
   const server = new McpServer({
     name: "tinytldr",
@@ -39,7 +45,7 @@ export function createTinytldrMcpServer(options?: {
 
   server.tool(
     "list_templates",
-    "List available tinytldr templates with optional filtering by kind (static, carousel, video), tag, or aspect ratio / size preset.",
+    `List available tinytldr templates with optional filtering by kind (static, carousel, video), tag, or aspect ratio / size preset.${savedDesignHint}`,
     {
       kind: TemplateKindSchema.optional().describe(
         "Optional template kind filter: 'static', 'carousel', or 'video'.",
@@ -170,6 +176,7 @@ export function createTinytldrMcpServer(options?: {
     artifacts: options?.artifacts,
     runRender: options?.runRender,
   });
+  if (designs) registerDesignTools(server, designs);
 
   server.prompt(
     "distill_to_post",
@@ -204,7 +211,9 @@ export function createTinytldrMcpServer(options?: {
               `Preferred kind: ${preferredKind ?? "static"}`,
               ``,
               `Follow this exact workflow:`,
-              `1. Call 'list_templates' and 'get_template_schema' to inspect slot constraints and 'distillationHint'.`,
+              designs
+                ? `1. If the user named their own saved template or design, call 'list_designs' and 'get_design', fill its slots, and export with 'render_workspace'. Otherwise call 'list_templates' and 'get_template_schema' to inspect slot constraints and 'distillationHint'.`
+                : `1. Call 'list_templates' and 'get_template_schema' to inspect slot constraints and 'distillationHint'.`,
               `2. Distill the source material so every slot stays within 'recommendedMaxLength' and 'maxLength'.`,
               `3. Call 'validate_template_data' and 'preview_post' to verify there are zero overflow or contrast warnings.`,
               options?.artifacts

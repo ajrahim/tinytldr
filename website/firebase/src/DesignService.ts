@@ -3,29 +3,15 @@ import type { Firestore, DocumentSnapshot, Transaction } from "firebase-admin/fi
 import { z } from "zod";
 import {
   DESIGN_VERSION_PAGE_SIZE,
+  DeletedDesignRecordSchema as DeletedDesignSchema,
   FirebaseDesignRequestSchema,
-  SavedWorkspaceDesignSchema,
   SavedDesignVersionSchema,
+  StoredDesignRecordSchema as StoredDesignSchema,
+  savedDesignFromRecord as publicDesign,
   type FirebaseDesignRequest,
-  type SavedWorkspaceDesign,
+  type StoredDesignRecord as StoredDesign,
   type WorkspaceProject,
 } from "@tinytldr/core/firebase";
-
-const StoredDesignSchema = SavedWorkspaceDesignSchema.omit({ document: true })
-  .extend({
-    document_json: z.string(),
-    guest_key_hash: z
-      .string()
-      .regex(/^[0-9a-f]{64}$/)
-      .nullable(),
-  })
-  .strict()
-  .refine((design) => (design.owner_id === null) === (design.guest_key_hash !== null));
-type StoredDesign = z.infer<typeof StoredDesignSchema>;
-const DeletedDesignSchema = StoredDesignSchema.innerType()
-  .pick({ id: true, owner_id: true, guest_key_hash: true, revision: true })
-  .extend({ deleted_at: z.string().datetime({ offset: true }) })
-  .strict();
 
 export class DesignRequestError extends Error {
   constructor(
@@ -35,17 +21,6 @@ export class DesignRequestError extends Error {
     super(message);
     this.name = "DesignRequestError";
   }
-}
-
-function publicDesign(stored: StoredDesign): SavedWorkspaceDesign {
-  return SavedWorkspaceDesignSchema.parse({
-    id: stored.id,
-    owner_id: stored.owner_id,
-    document: JSON.parse(stored.document_json),
-    revision: stored.revision,
-    created_at: stored.created_at,
-    updated_at: stored.updated_at,
-  });
 }
 
 function hashKey(key: string): string {

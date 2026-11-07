@@ -9,6 +9,8 @@ description: Turns articles, diffs, papers, changelogs, and notes into determini
 
 ## 4-Step Agent Loop
 
+> **Using the user's own saved design?** On the hosted server, when the user names their own template or design (for example "my Weekly template"), call `list_designs` → `get_design`, replace the copy in `pages[].data` within each page's slot limits, and export with `render_workspace`. Don't substitute a built-in template.
+
 ### 1. Discover the right template (`list_templates` → `get_template_schema`)
 
 Call `list_templates` with optional filters (`kind: "static" | "carousel" | "video"`, `tag`, or `aspect`) to pick the best template for the user's goal:

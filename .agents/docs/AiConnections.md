@@ -31,10 +31,23 @@ extra provider calls. Requests target all artboards unless `@` selects stable
 artboard IDs. Targeted results cannot change other pages or project-wide title
 and dimensions.
 
-Attachments are transient context, not Library uploads. The receiving provider
-gets the prompt, selected design sources, and attachments. A complete result
-must validate and compile before becoming an unsaved draft. Save remains
-explicit; guarded Undo is available until subsequent source edits.
+Text attachments remain transient context. Signed-in image attachments are also
+saved as private My Library uploads. When asked to place an attached image as a
+logo or photo, the model references that image; the gateway inserts the original
+bytes into the design, rather than a text reconstruction or invented base64.
+Existing design images are replaced with stable references in provider-facing
+design JSON, so later edits do not ask the model to reproduce their bytes.
+Placed images are self-contained in saved designs and exports; they do not
+depend on public Firebase links or session-only blobs. The existing 400 KB
+document and 500 KB UTF-8 save limits still apply. Oversized placement is refused
+with a smaller-image error, never silent resizing or a missing-image success.
+
+The receiving provider gets the prompt, selected design sources and attached
+context, including original attached images for vision. A complete result must
+validate and compile before becoming an unsaved draft. Successful application
+clears the submitted prompt/context, not My Library files or newer attachments.
+Errors and cancellation preserve submitted input. Save remains explicit; guarded
+Undo is available until subsequent source edits.
 Cancellation, navigation, sign-out, source changes, or connection/model changes
 prevent late application. Cancellation cannot guarantee a refund or provider-side
 termination.

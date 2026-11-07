@@ -15,13 +15,19 @@ import {
   OAuthTokensSchema,
   type OAuthClientInformationFull,
 } from "@modelcontextprotocol/sdk/shared/auth.js";
-import { HOSTED_MCP_SCOPE, HostedRenderedExportSchema } from "@tinytldr/core";
+import {
+  HOSTED_MCP_SCOPE,
+  HostedRenderedExportSchema,
+  WorkspaceProjectSchema,
+} from "@tinytldr/core";
 import { inspectPngHeader } from "@tinytldr/renderer";
+import { getTemplateBundle } from "@tinytldr/templates";
 import {
   FirebaseOAuthProvider,
   firebaseAccountCreationTime,
 } from "../src/FirebaseOAuthProvider.js";
 import { startHostedMcpServer } from "../src/HostedServer.js";
+import { SavedDesignReader } from "../src/SavedDesignReader.js";
 
 function hash(value: string) {
   return createHash("sha256").update(value).digest("base64url");
@@ -36,6 +42,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
     const users: string[] = [];
     const clients = new Set<string>();
     const rateRecords = new Set<string>();
+    const designs = new Set<string>();
     const reports: string[] = [];
     const objects = new Map<string, Buffer>();
     const capabilities = new Map<string, { key: string; expiresAt: number }>();
@@ -176,6 +183,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
       downloadBase = `http://127.0.0.1:${address.port}`;
       service = await startHostedMcpServer({
         provider,
+        designs: new SavedDesignReader(database),
         port: 0,
         websiteDirectory: directory,
         reportError: (code) => reports.push(code),
@@ -213,6 +221,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
         )
           await snapshot.ref.delete();
       }
+      for (const id of designs) await database.collection("designs").doc(id).delete();
       for (const uid of users) {
         const existing = await auth.getUser(uid).catch((error: unknown) => {
           if (error instanceof Error && "code" in error && error.code === "auth/user-not-found")
@@ -503,6 +512,162 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
           await client.close();
         }
       }
+      expect(reports).toEqual([]);
+    });
+
+    it("lists and reads only the caller's saved designs, then renders one as a template", async () => {
+      const owner = await user();
+      const stranger = await user();
+      const template = structuredClone(getTemplateBundle("quote-card"));
+      function saved(title: string) {
+        return WorkspaceProjectSchema.parse({
+          version: 2,
+          title,
+          size: "square",
+          pages: [
+            {
+              id: "page-1",
+              title: "Top 3 of the Week",
+              description: "An editable weekly roundup.",
+              template,
+              data: template.manifest.sampleData,
+              theme: template.manifest.defaultTheme,
+              tokenOverrides: {},
+            },
+          ],
+        });
+      }
+      async function seed(
+        title: string,
+        ownerId: string | null,
+        updatedAt: string,
+        deleted = false,
+      ) {
+        const id = randomUUID();
+        designs.add(id);
+        const guestKeyHash = ownerId ? null : createHash("sha256").update(id).digest("hex");
+        await database
+          .collection("designs")
+          .doc(id)
+          .set(
+            deleted
+              ? {
+                  id,
+                  owner_id: ownerId,
+                  guest_key_hash: guestKeyHash,
+                  revision: 1,
+                  deleted_at: updatedAt,
+                }
+              : {
+                  id,
+                  owner_id: ownerId,
+                  document_json: JSON.stringify(saved(title)),
+                  guest_key_hash: guestKeyHash,
+                  revision: 1,
+                  created_at: "2026-11-01T00:00:00.000Z",
+                  updated_at: updatedAt,
+                },
+          );
+        return id;
+      }
+      const older = await seed("Untitled design", owner.uid, "2026-11-02T00:00:00.000Z");
+      const weekly = await seed("The Weekly Social Three", owner.uid, "2026-11-03T00:00:00.000Z");
+      const deleted = await seed("Deleted", owner.uid, "2026-11-04T00:00:00.000Z", true);
+      const foreign = await seed("Someone else's", stranger.uid, "2026-11-05T00:00:00.000Z");
+      const guest = await seed("Guest draft", null, "2026-11-05T00:00:00.000Z");
+
+      const { tokens } = await grant(owner.idToken);
+      rateRecords.add(`render-rate_${hash(`${owner.uid}:${Math.floor(now / 60)}`)}`);
+      const client = new Client({ name: "hosted-design-fixture", version: "1" });
+      try {
+        await client.connect(
+          new StreamableHTTPClientTransport(new URL(`${base}/mcp`), {
+            requestInit: { headers: { Authorization: `Bearer ${tokens.access_token}` } },
+          }),
+        );
+        const tools = (await client.listTools()).tools;
+        expect(tools.map((tool) => tool.name)).toEqual(
+          expect.arrayContaining(["list_designs", "get_design"]),
+        );
+        expect(tools.find((tool) => tool.name === "list_templates")?.description).toContain(
+          "list_designs",
+        );
+        const prompt = await client.getPrompt({
+          name: "distill_to_post",
+          arguments: { source: "Weekly news." },
+        });
+        expect(prompt.messages[0]?.content).toMatchObject({
+          text: expect.stringContaining("list_designs"),
+        });
+
+        function text(result: Awaited<ReturnType<typeof client.callTool>>) {
+          const item = z
+            .array(z.object({ type: z.string(), text: z.string().optional() }))
+            .parse(result.content)
+            .find((entry) => entry.type === "text");
+          if (!item?.text) throw new Error("Tool text content missing.");
+          return item.text;
+        }
+
+        const listed = z
+          .object({
+            designs: z.array(
+              z.object({
+                id: z.string(),
+                title: z.string(),
+                pages: z.array(z.object({ title: z.string(), slots: z.array(z.string()) })),
+              }),
+            ),
+          })
+          .parse(JSON.parse(text(await client.callTool({ name: "list_designs", arguments: {} }))));
+        expect(listed.designs.map((design) => design.id)).toEqual([weekly, older]);
+        expect(listed.designs[0]).toMatchObject({
+          title: "The Weekly Social Three",
+          pages: [{ title: "Top 3 of the Week", slots: expect.arrayContaining(["quote"]) }],
+        });
+
+        for (const hidden of [deleted, foreign, guest, randomUUID()]) {
+          const denied = await client.callTool({
+            name: "get_design",
+            arguments: { designId: hidden },
+          });
+          expect(denied.isError).toBe(true);
+          expect(text(denied)).toContain("not found");
+        }
+
+        const fetched = z
+          .object({ id: z.string(), document: WorkspaceProjectSchema, nextStep: z.string() })
+          .parse(
+            JSON.parse(
+              text(await client.callTool({ name: "get_design", arguments: { designId: weekly } })),
+            ),
+          );
+        expect(fetched.id).toBe(weekly);
+        expect(fetched.nextStep).toContain("render_workspace");
+        const document = fetched.document;
+        document.pages[0]!.data = {
+          ...document.pages[0]!.data,
+          quote: "Agents can now reuse a saved tinytldr design.",
+        };
+        const rendered = await client.callTool({
+          name: "render_workspace",
+          arguments: { document, format: "png" },
+        });
+        expect(rendered.isError).not.toBe(true);
+        const metadata = HostedRenderedExportSchema.parse(JSON.parse(text(rendered)));
+        expect(metadata).toMatchObject({ status: "completed", width: 1080, height: 1080 });
+        const download = await fetch(metadata.assets[0]!.url);
+        expect(inspectPngHeader(Buffer.from(await download.arrayBuffer()))).toEqual({
+          width: 1080,
+          height: 1080,
+        });
+      } finally {
+        await client.close();
+      }
+      expect(
+        JSON.parse((await database.collection("designs").doc(weekly).get()).get("document_json"))
+          .pages[0].data.quote,
+      ).toBe(template.manifest.sampleData.quote);
       expect(reports).toEqual([]);
     });
 

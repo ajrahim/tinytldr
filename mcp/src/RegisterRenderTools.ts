@@ -95,7 +95,7 @@ export function registerRenderTools(server: McpServer, options: RenderToolOption
     );
     server.tool(
       "render_workspace",
-      "Render an authored version-2 design JSON with up to 20 independent artboards. Images/videos return files in page order; PDF returns one multipage document. Returns signed download URLs and a small preview. Does not access browser drafts or saved links; pass the downloaded document.",
+      "Render an authored version-2 design JSON with up to 20 independent artboards. Images/videos return files in page order; PDF returns one multipage document. Returns signed download URLs and a small preview. Pass the document from get_design (the user's saved designs, with updated data) or a downloaded design.json.",
       HostedWorkspaceRenderToolSchema.shape,
       (args) =>
         run(async () => {

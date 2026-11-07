@@ -2,6 +2,96 @@
 
 Source baseline: 2026-10-25.
 
+## Hosted MCP saved designs: 2026-11-07
+
+- Hosted MCP adds owner-scoped, read-only `list_designs` and `get_design` so agents
+  can reuse a user's saved website design with `render_workspace` instead of
+  substituting a built-in template. Local stdio is unchanged (six tools).
+- Focused real-emulator tests passed **36 tests / 3 suites**. The runtime IAM grant
+  for the `(default)` database, redeployment and the live check are pending owner
+  action. See [scope, operations and evidence](../specs/HostedMcpSavedDesigns.md).
+
+## Legal pages and Library routes: 2026-11-03
+
+- [Privacy Policy](https://www.tinytldr.com/privacy) and
+  [Terms and Conditions](https://www.tinytldr.com/terms) are published with footer
+  links, AJR Creative LLC / aj@ajr.co, an 18+ hosted-service minimum and Virginia/US
+  law. They distinguish public-by-link designs, private Library files, optional
+  third-party AI and independent self-hosting/MIT rights. These are original legal
+  drafts; legal review remains recommended.
+- [My Library](https://www.tinytldr.com/library) has a real route, direct
+  loading/refresh and Back/Forward. Library/legal navigation retains unfinished
+  workspace sources, prompts/context, generation and camera. Direct legal entry
+  creates no hidden draft. Compiled previews replace their iframe browsing
+  context so updates cannot consume browser Back presses.
+- Final real demo Auth/Firestore/Storage `pnpm check` passed **375 tests /
+  44 suites**, no skips, all format/lint/type gates and **9 MIT manifests /
+  304 permissive production dependencies**. All workspace builds pass.
+- Website-only publication succeeded. Live routes return trusted HTTPS 200; the
+  index and all eight referenced script/style assets match release bytes.
+  Isolated guest desktop/320px Day/Night, refresh, source/prompt/camera and
+  Back/Forward checks pass with zero JavaScript errors or mixed resources.
+  Functions, API/MCP, credentials and existing user data were unchanged. See
+  [scope and evidence](../specs/LegalAndLibraryRoutes.md).
+
+## Centered Library loading: 2026-11-02
+
+- [My Library loading](../specs/RenderedMediaLibrary.md#revision-centered-loading-spinner)
+  now uses a muted 24px spinner centered between the filters and capacity bar.
+  Loading text remains accessible but visually hidden; reduced motion disables
+  rotation. Loaded/error/empty states and the remaining layout are unchanged.
+- Desktop/mobile/short-landscape Day/Night checks confirm both-axis centering
+  within 1px. Focused Library checks passed **11 tests**; final real demo
+  Auth/Firestore/Storage `pnpm check` passed **369 tests / 44 suites**, no skips,
+  all gates and **9 MIT / 304 permissive dependencies**. All workspace builds pass.
+- Website-only publication succeeded; live assets match release bytes and
+  isolated guest Library checks pass. No functions, API/MCP or user data changes.
+
+## Exact composer images: 2026-11-02
+
+- [Attached-image placement](../specs/WebsiteAiComposer.md) is shipped and published.
+  The model references actual attached raster images instead of reconstructing
+  logos as text. The gateway restores original bytes into self-contained design
+  data; existing images are redacted to stable references on subsequent requests.
+  Preview, saved reload and deterministic exports use the existing sandbox.
+- Successful application clears only submitted context. Errors/cancellation
+  preserve it; new context and uploaded Library originals remain. Existing
+  document/save limits are enforced explicitly after image expansion and
+  targeted merge; no silent resize, public bucket URLs or styling changes.
+- Final real demo Auth/Firestore/Storage emulator `pnpm check` passed **368 tests /
+  44 suites**, no skips, all gates and **9 MIT / 304 permissive dependencies**.
+  All workspace builds pass. Exact original bytes, saved reload, PNG/PDF/video
+  output and context lifecycle have empirical regression coverage.
+- Website release assets match live bytes. AI revision `ai-00006-mac` is active;
+  isolated live guest preview, HTTPS, API/MCP health and unsigned AI/CORS checks
+  pass. No paid provider calls or existing user data changes. See
+  [release evidence](../docs/PLAN.md#exact-composer-images-and-context-cleanup-2026-11-02).
+
+## Production publication: 2026-11-02
+
+- `https://www.tinytldr.com` is published on Firebase Hosting.
+  `https://api.tinytldr.com` uses a separate Hosting site proxying the
+  authenticated Cloud Run renderer. Both custom domains report active hosting,
+  ownership and certificates, and pass trusted HTTPS checks.
+- `https://mcp.tinytldr.com/mcp` retains its existing issuer, isolated runtime
+  identity/database/bucket and owner-approved Preview domain mapping. Trusted TLS,
+  health/discovery, unsigned denial and a complete live OAuth/PKCE official-client
+  render/download check pass. The connector UI is unchanged.
+- Private persistent media and one-day temporary API artifacts use separate
+  buckets. The media function and deletion trigger have explicit bucket-scoped
+  object permissions; rate-record TTL is active. Existing AI encryption secrets
+  are unchanged. Static font CORS supports opaque sandboxed previews.
+- The approved disposable-account live check passed password sign-in, owned cloud
+  save, automatic cloud New design in the browser, real PNG rendering, private
+  byte-exact upload/export/poster reads, library reload and MCP export/download.
+  Only verification-owned data/accounts were created and cleaned; no AI calls.
+- The real Auth/Firestore/Storage emulator `pnpm check` passed **358 tests /
+  44 suites**, no skips, all format/lint/type gates, and **9 MIT / 304 permissive
+  production dependencies**. Workspace builds and both remote container builds
+  passed. See [publication evidence](../docs/PLAN.md#production-publication-2026-11-02).
+
+## Earlier phase evidence
+
 [Firebase Storage media](../specs/RenderedMediaLibrary.md) is shipped. Account-owned
 uploads, rendered exports and thumbnails persist in private Firebase Storage;
 Firestore owns library metadata, upload deduplication and the 100 MB account quota.
@@ -29,8 +119,8 @@ authenticated export API configured for `api.tinytldr.com`. The existing MCP URL
 and issuer remain unchanged. No visual styling changes or live deployment were made.
 The Firebase cleanup's real Auth/Firestore emulator `pnpm check` passed **335 tests / 42 suites**
 with no skips, all format/lint/type gates, and **9 MIT / 304 permissive production
-dependencies**. All workspace builds passed. Docker execution and live website/API
-domain provisioning remain unverified and require separate operator actions.
+dependencies**. All workspace builds passed. Local Docker execution was unavailable;
+the publication above subsequently verified remote containers and live domains.
 Historical entries below record earlier evidence, not the current release gate.
 
 [Authenticated hosted MCP](../specs/HostedMcp.md) remains Active.
@@ -38,16 +128,12 @@ The isolated Cloud Run service is deployed from the verified container with
 min 0 / max 2 instances, 1 CPU / 2 GiB, concurrency 4 and a 130-second timeout.
 Live health/discovery/login, unsigned-MCP denial, CORS and named-database access
 checks pass. The owner approved Preview routing after reviewing limitations and
-costs. The custom-domain mapping is created; Google's actual DNS requirement is
-`mcp CNAME ghs.googlehosted.com.` at Name.com. The owner saved it and public CNAME/A
-lookups confirm propagation. Google still reports `CertificatePending`; trusted
-custom-domain TLS and live sign-in/export remain unverified, so the connector UI
-is unchanged. Hosted prompts now describe short-lived downloads; local prompts
-retain disk export. Full real-emulator checks pass 319 tests / 41 suites and all
-builds. Isolated build `5451faab-3be1-4bc1-ab9f-526ea9960d64` succeeded; image
-`hosted-20261101-2055` is deployed as revision `tinytldr-mcp-00002-n4w`, health 200
-and runtime configuration unchanged. Test emulators/logs removed; real accounts,
-existing AI/design services and secrets untouched. The specification documents
+costs. Its DNS remains `mcp CNAME ghs.googlehosted.com.`. Certificates and live
+OAuth/rendering now pass as recorded above; the connector UI follow-up remains
+outside this publication. Hosted prompts describe short-lived downloads; local
+prompts retain disk export. The current revision is `tinytldr-mcp-00003-6pk`
+from the verified `release-20261102` image, with health 200 and runtime settings
+unchanged. Existing accounts/provider secrets were not changed. The specification documents
 the future, separately cost-approved load-balancer upgrade retaining the same
 client URL, issuer, accounts and storage.
 

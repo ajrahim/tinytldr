@@ -4,6 +4,7 @@ import {
   apiDeploymentCommands,
   createDeploymentConfiguration,
   createFirebaseDeploymentPlan,
+  run,
   websiteEnvironment,
 } from "../DeployHosted.mjs";
 
@@ -22,6 +23,11 @@ const environment = {
 };
 
 describe("Firebase Hosting deployment configuration", () => {
+  it("resolves the package runner from PATH instead of treating its quoted name as a local script", () => {
+    expect(() => run("npx", ["--version"])).not.toThrow();
+    expect(() => run("npx & bad", [])).toThrow("plain executable name");
+  });
+
   it.each(["functions:tinytldr", "firestore", "firestore,functions:tinytldr"])(
     "keeps %s deployment independent of Hosting, API and browser configuration",
     (targets) => {
@@ -50,7 +56,9 @@ describe("Firebase Hosting deployment configuration", () => {
     const resolved = createDeploymentConfiguration(configuration, environment);
     expect(resolved.hosting.public).toBe("website/dist");
     expect(resolved.hosting.site).toBe("example-site");
-    expect(resolved.hosting.predeploy).toContain("pnpm --filter @tinytldr/website... build");
+    expect(resolved.hosting.predeploy).toContain(
+      "pnpm --fail-if-no-match --filter website... build",
+    );
     expect(resolved.hosting.ignore).toContain("**/*.map");
     expect(resolved.hosting.rewrites).toEqual([
       { source: "/v1/**", run: { serviceId: "website-api", region: "us-central1" } },
@@ -80,6 +88,40 @@ describe("Firebase Hosting deployment configuration", () => {
       key: "X-Content-Type-Options",
       value: "nosniff",
     });
+    expect(rules.find((rule) => rule.source === "/fonts/**").headers).toContainEqual({
+      key: "Access-Control-Allow-Origin",
+      value: "*",
+    });
+    expect(rules.find((rule) => rule.source === "/api/**").headers).not.toContainEqual({
+      key: "Access-Control-Allow-Origin",
+      value: "*",
+    });
+  });
+
+  it("supports a separate Firebase Hosting API proxy without serving website files or SPA fallback", () => {
+    const resolved = createDeploymentConfiguration(configuration, {
+      ...environment,
+      TINYTLDR_API_HOSTING_SITE: "example-api",
+    });
+    const [website, api] = resolved.hosting;
+    expect(website.site).toBe("example-site");
+    expect(website.public).toBe("website/dist");
+    expect(website.rewrites.at(-1)).toEqual({ source: "**", destination: "/index.html" });
+    expect(api).toEqual({
+      site: "example-api",
+      headers: [{ source: "**", headers: [{ key: "Cache-Control", value: "private, no-store" }] }],
+      rewrites: [{ source: "**", run: { serviceId: "website-api", region: "us-central1" } }],
+    });
+    expect(configuration.hosting.site).toBeUndefined();
+  });
+
+  it("rejects using the website Hosting site as the API proxy", () => {
+    expect(() =>
+      createDeploymentConfiguration(configuration, {
+        ...environment,
+        TINYTLDR_API_HOSTING_SITE: environment.TINYTLDR_FIREBASE_HOSTING_SITE,
+      }),
+    ).toThrow("separate Firebase Hosting sites");
   });
 
   it("builds the Firebase-only website with same-origin API endpoints by default", () => {

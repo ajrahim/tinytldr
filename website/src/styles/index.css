@@ -18,4 +18,5 @@
 @import "./components/SandboxPreviewFrame.css";
 @import "./components/VersionHistoryMenu.css";
 @import "./pages/PlaygroundPage.css";
+@import "./pages/LegalPage.css";
 @import "./pages/McpAuthorizationPage.css";

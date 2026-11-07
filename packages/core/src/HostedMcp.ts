@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SavedWorkspaceDesignSchema, WorkspaceProjectSchema } from "./WorkspaceProject.js";
 
 export const HOSTED_MCP_SCOPE = "mcp:render";
 export const HOSTED_MCP_REQUEST_MAX_BYTES = 2_000_000;
@@ -95,3 +96,34 @@ export type HostedMcpAuthorizationRecord = z.infer<typeof HostedMcpAuthorization
 export type HostedMcpCodeRecord = z.infer<typeof HostedMcpCodeRecordSchema>;
 export type HostedMcpGrantRecord = z.infer<typeof HostedMcpGrantRecordSchema>;
 export type HostedMcpTokenRecord = z.infer<typeof HostedMcpTokenRecordSchema>;
+
+export const HOSTED_MCP_DESIGN_LIST_LIMIT = 100;
+const projectShape = WorkspaceProjectSchema.innerType().shape;
+export const SavedDesignSummarySchema = z
+  .object({
+    id: SavedWorkspaceDesignSchema.shape.id,
+    title: projectShape.title,
+    size: projectShape.size,
+    revision: SavedWorkspaceDesignSchema.shape.revision,
+    updatedAt: SavedWorkspaceDesignSchema.shape.updated_at,
+    pages: z.array(
+      z
+        .object({
+          id: z.string(),
+          title: z.string(),
+          description: z.string(),
+          template: z.string(),
+          slots: z.array(z.string()),
+        })
+        .strict(),
+    ),
+  })
+  .strict();
+export type SavedDesignSummary = z.infer<typeof SavedDesignSummarySchema>;
+export const GetSavedDesignToolSchema = z
+  .object({
+    designId: SavedWorkspaceDesignSchema.shape.id.describe(
+      "Saved design ID returned by list_designs.",
+    ),
+  })
+  .strict();

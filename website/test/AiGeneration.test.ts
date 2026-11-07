@@ -8,7 +8,9 @@ import {
   type AiProvider,
   type AiGenerationInput,
   type AiConnection,
+  WorkspaceProjectSchema,
 } from "@tinytldr/core";
+import { z } from "zod";
 import { createBlankDocument } from "../src/lib/WorkspaceTemplates.js";
 import {
   createAiGateway,
@@ -16,6 +18,7 @@ import {
   type AiConnectionStore,
 } from "../server/AiGateway.js";
 import { callAiProvider, providerBaseUrl, readAiJson } from "../server/AiProviders.js";
+import { AiImageAssets } from "../server/AiImageAssets.js";
 
 const id = "688b680f-7713-415c-8396-cbe636f1d41e";
 const owner = "fixture-firebase-owner";
@@ -39,6 +42,20 @@ function providerResponse(provider: AiProvider, output: string) {
   if (provider === "gemini")
     return { candidates: [{ finishReason: "STOP", content: { parts: [{ text: output }] } }] };
   return { choices: [{ finish_reason: "stop", message: { content: output } }] };
+}
+function providerPacket(provider: AiProvider, init?: RequestInit) {
+  const body: {
+    messages?: { content: string | { text?: string }[] }[];
+    contents?: { parts: { text?: string }[] }[];
+  } = JSON.parse(String(init?.body));
+  const content = provider === "gemini" ? body.contents![0]!.parts : body.messages!.at(-1)!.content;
+  const text = typeof content === "string" ? content : content[0]!.text!;
+  return z
+    .object({
+      currentProject: WorkspaceProjectSchema,
+      imageAssets: z.array(z.object({ name: z.string(), source: z.string() })),
+    })
+    .parse(JSON.parse(text));
 }
 describe("AI schemas and provider protocol", () => {
   it("rejects malformed, mislabeled and oversized context without throwing outside validation", () => {
@@ -114,6 +131,110 @@ describe("AI schemas and provider protocol", () => {
       expect(String(sent!.init!.body)).not.toContain(secret);
     },
   );
+  it.each(["openai", "anthropic", "gemini", "custom"] as const)(
+    "places exact attached bytes with %s and preserves them on subsequent edits without asking for base64",
+    async (provider) => {
+      const request = makeRequest();
+      const source = `data:${image.mimeType};base64,${image.base64}`;
+      const references: string[] = [];
+      const options = {
+        secret: {
+          provider,
+          base_url:
+            provider === "custom"
+              ? "https://models.example.com/v1"
+              : AI_PROVIDER_BASE_URLS[provider],
+          model: "test",
+          api_key: secret,
+        },
+        allowedCustomUrls: ["https://models.example.com/v1"],
+        signal: new AbortController().signal,
+        fetch: async (_url: URL | RequestInfo, init?: RequestInit) => {
+          const packet = providerPacket(provider, init);
+          expect(packet.imageAssets).toHaveLength(1);
+          expect(JSON.stringify(packet.currentProject)).not.toContain(image.base64);
+          const reference = packet.imageAssets[0]!.source;
+          references.push(reference);
+          expect(reference).toMatch(/^tinytldr-image:[a-f0-9]{64}$/);
+          const board = packet.currentProject.pages[0]!;
+          board.data.logo = reference;
+          board.template.manifest.slots.logo = {
+            type: "image",
+            label: "Logo",
+            description: "The original uploaded logo",
+            required: true,
+          };
+          board.template.manifest.sampleData = board.data;
+          board.template.liquidTemplate = '<img alt="Exact logo" src="{{ logo }}">';
+          return Response.json(providerResponse(provider, JSON.stringify(packet.currentProject)));
+        },
+      };
+      const placed = await callAiProvider({ ...options, request });
+      expect(placed!.pages[0]!.data.logo).toBe(source);
+      expect(placed!.pages[0]!.template.manifest.sampleData.logo).toBe(source);
+      expect(JSON.stringify(placed)).not.toContain("tinytldr-image:");
+      const edited = await callAiProvider({
+        ...options,
+        request: { ...request, document: placed!, context: [] },
+      });
+      expect(edited).toEqual(placed);
+      expect(references[0]).toBe(references[1]);
+    },
+  );
+  it("rejects invented, unknown and malformed image references without leaking bytes", async () => {
+    const request = makeRequest();
+    const reference = new AiImageAssets(request.context).references[0]!.source;
+    for (const source of [
+      "tinytldr-image:missing",
+      "tinytldr-image:",
+      "TINYTLDR-IMAGE:",
+      `${reference}?width=100`,
+      `${reference}#fragment`,
+      `${reference}/invented.png`,
+      "data:image/png;base64,iVBORw0KGgpJTlZFTlRFRA==",
+    ]) {
+      const generated = structuredClone(request.document);
+      generated.pages[0]!.data.logo = source;
+      await expect(
+        callAiProvider({
+          secret: {
+            provider: "openai",
+            base_url: AI_PROVIDER_BASE_URLS.openai,
+            model: "test",
+            api_key: secret,
+          },
+          allowedCustomUrls: [],
+          signal: new AbortController().signal,
+          request,
+          fetch: async () => Response.json(providerResponse("openai", JSON.stringify(generated))),
+        }),
+      ).rejects.toMatchObject({
+        status: 502,
+        code: "image_assets",
+        message: expect.not.stringContaining(source),
+      });
+    }
+  });
+  it("enforces exact restored document and UTF-8 save thresholds rather than silently dropping images", () => {
+    const request = makeRequest();
+    const assets = new AiImageAssets(request.context);
+    const document = assets.redact(request.document);
+    document.pages[0]!.data.logo = assets.references[0]!.source;
+    const restored = assets.resolve(document);
+    restored.pages[0]!.data.padding = "";
+    const paddingLength = 400_000 - JSON.stringify(restored).length;
+    document.pages[0]!.data.padding = "x".repeat(paddingLength);
+    expect(JSON.stringify(assets.resolve(document))).toHaveLength(400_000);
+    document.pages[0]!.data.padding += "x";
+    expect(() => assets.resolve(document)).toThrow(/size limits/);
+    document.pages[0]!.data.padding = "\u4e00".repeat(165_000);
+    const utf8Boundary = assets.resolve(document);
+    const remaining = 500_000 - Buffer.byteLength(JSON.stringify(utf8Boundary), "utf8");
+    document.pages[0]!.data.padding += "x".repeat(remaining);
+    expect(Buffer.byteLength(JSON.stringify(assets.resolve(document)), "utf8")).toBe(500_000);
+    document.pages[0]!.data.padding += "x";
+    expect(() => assets.resolve(document)).toThrow(/500 KB/);
+  });
   it("rejects unapproved endpoints, credentials in URLs, native endpoint overrides and internal destinations", () => {
     for (const url of [
       "http://api.example.com/v1",
@@ -299,4 +420,30 @@ describe("Authenticated AI gateway", () => {
     expect(failed.status).toBe(429);
     expect(await failed.text()).not.toContain(secret);
   });
+  it.each([
+    ["400 KB", "x".repeat(210_000)],
+    ["500 KB", "\u4e00".repeat(90_000)],
+  ])(
+    "reports the merged %s size limit for targeted edits, not a misleading scope error",
+    async (limit, padding) => {
+      const request = makeRequest();
+      request.document.pages[0]!.data.padding = padding;
+      const target = structuredClone(makeRequest().document.pages[0]!);
+      target.id = "target";
+      request.document.pages.push(target);
+      request.targetPageIds = [target.id];
+      const generated = { ...request.document, pages: [structuredClone(target)] };
+      generated.pages[0]!.data.padding = padding;
+      const test = fixture({
+        fetch: async () => Response.json(providerResponse("openai", JSON.stringify(generated))),
+      });
+      const response = await test.send({ action: "generate", request });
+      expect(response.status).toBe(502);
+      expect(await response.json()).toMatchObject({
+        code: "size",
+        error: expect.stringContaining(limit),
+      });
+      expect(test.logs).toEqual(["size"]);
+    },
+  );
 });

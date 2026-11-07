@@ -10,7 +10,7 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -61,6 +61,32 @@ afterEach(async () => {
 });
 
 describe("Firebase deployment environment isolation", () => {
+  it("loads bundled CommonJS dependencies that require Node built-ins in the deployed ESM output", async () => {
+    const root = await fixture();
+    await writeFile(
+      path.join(root, "src", "StreamFixture.cjs"),
+      'module.exports = require("node:stream");\n',
+    );
+    await writeFile(
+      path.join(root, "src", "index.ts"),
+      'import stream from "./StreamFixture.cjs"; export const readable = stream.Readable;\n',
+    );
+    const result = build(root);
+    expect(result.status, result.stderr).toBe(0);
+    const entry = pathToFileURL(path.join(root, "dist", "index.js")).href;
+    const loaded = spawnSync(
+      process.execPath,
+      [
+        "--input-type=module",
+        "--eval",
+        `import { readable } from ${JSON.stringify(entry)}; console.log(typeof readable);`,
+      ],
+      { encoding: "utf8" },
+    );
+    expect(loaded.status, loaded.stderr).toBe(0);
+    expect(loaded.stdout.trim()).toBe("function");
+  });
+
   it("copies only the explicitly selected project environment", async () => {
     const root = await fixture();
     const result = build(root, "demo-current");

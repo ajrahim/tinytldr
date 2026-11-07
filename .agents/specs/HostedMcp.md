@@ -29,7 +29,8 @@ may require owner action. Do not advertise an unverified hostname as operational
 
 No LLM calls, provider-key changes, account migration, website-design synchronization,
 template pipeline changes, unrelated cleanup, or changes to existing Firebase AI
-encryption secrets.
+encryption secrets. Read-only, owner-scoped saved-design access was later approved
+separately in [Hosted MCP saved designs](HostedMcpSavedDesigns.md).
 
 ## Acceptance criteria
 
@@ -134,6 +135,19 @@ Test emulators and exact task logs were removed; existing AI/design services,
 provider secrets and real accounts were not changed.
 
 ## Upgrading routing later
+
+### Publication update: 2026-11-02
+
+Trusted custom-domain TLS and certificate provisioning now pass. The owner-approved
+disposable-account production smoke check passed real Firebase password sign-in,
+OAuth discovery/PKCE/consent/token exchange, official-client initialization and
+tool listing, PNG export with a bounded preview, and a real 1080px file download.
+Unsigned MCP remains 401. The current `release-20261102` image is deployed as
+`tinytldr-mcp-00003-6pk`; runtime identity, issuer, database, artifact bucket and
+resource bounds are unchanged. Test-owned records/files/account were cleaned.
+See [publication evidence](../docs/PLAN.md#production-publication-2026-11-02).
+The specification remains Active for its separately scoped default connector UI;
+publication does not introduce that UI change or replace Preview routing.
 
 Keep `https://mcp.tinytldr.com/mcp` as the client endpoint and
 `TINYTLDR_MCP_ISSUER_URL=https://mcp.tinytldr.com` unchanged. OAuth discovery,

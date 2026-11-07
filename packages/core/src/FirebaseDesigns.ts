@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { WorkspaceProjectSchema } from "./WorkspaceProject.js";
+import {
+  SavedWorkspaceDesignSchema,
+  WorkspaceProjectSchema,
+  type SavedWorkspaceDesign,
+} from "./WorkspaceProject.js";
 
 export {
   DESIGN_VERSION_PAGE_SIZE,
@@ -56,4 +60,31 @@ export const FirebaseDesignRequestSchema = z.discriminatedUnion("action", [
     .strict(),
 ]);
 export type FirebaseDesignRequest = z.infer<typeof FirebaseDesignRequestSchema>;
+
+export const StoredDesignRecordSchema = SavedWorkspaceDesignSchema.omit({ document: true })
+  .extend({
+    document_json: z.string(),
+    guest_key_hash: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/)
+      .nullable(),
+  })
+  .strict()
+  .refine((design) => (design.owner_id === null) === (design.guest_key_hash !== null));
+export type StoredDesignRecord = z.infer<typeof StoredDesignRecordSchema>;
+export const DeletedDesignRecordSchema = StoredDesignRecordSchema.innerType()
+  .pick({ id: true, owner_id: true, guest_key_hash: true, revision: true })
+  .extend({ deleted_at: z.string().datetime({ offset: true }) })
+  .strict();
+
+export function savedDesignFromRecord(stored: StoredDesignRecord): SavedWorkspaceDesign {
+  return SavedWorkspaceDesignSchema.parse({
+    id: stored.id,
+    owner_id: stored.owner_id,
+    document: JSON.parse(stored.document_json),
+    revision: stored.revision,
+    created_at: stored.created_at,
+    updated_at: stored.updated_at,
+  });
+}
 export const FirebaseDesignErrorSchema = z.object({ error: z.string().min(1) }).strict();

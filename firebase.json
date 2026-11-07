@@ -19,7 +19,7 @@
   "hosting": {
     "public": "website/dist",
     "ignore": ["firebase.json", "**/.*", "**/*.map", "**/node_modules/**"],
-    "predeploy": ["pnpm --filter @tinytldr/website... build"],
+    "predeploy": ["pnpm --fail-if-no-match --filter website... build"],
     "cleanUrls": true,
     "headers": [
       {
@@ -45,7 +45,10 @@
       },
       {
         "source": "/fonts/**",
-        "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=86400" },
+          { "key": "Access-Control-Allow-Origin", "value": "*" }
+        ]
       },
       {
         "source": "/v1/**",

@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { ArrowDownToLine, Trash2 } from "lucide-react";
+import { ArrowDownToLine, LoaderCircle, Trash2 } from "lucide-react";
 import type { MediaLibraryItem } from "@tinytldr/core";
 import {
   deleteMedia,
@@ -316,7 +316,14 @@ export function MediaLibrary({ onBack, userId }: { onBack: () => void; userId: s
         </div>
       )}
       {loading ? (
-        <p role="status">Opening your library...</p>
+        <div className="media-library-loading" role="status">
+          <LoaderCircle
+            size={24}
+            className="animate-spin motion-reduce:animate-none"
+            aria-hidden="true"
+          />
+          <span className="sr-only">Opening your library...</span>
+        </div>
       ) : (
         !error &&
         (visible.length && userId ? (

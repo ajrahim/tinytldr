@@ -394,6 +394,7 @@ export function ArtboardCanvas(props: ArtboardCanvasProps) {
             >
               {board.compiled ? (
                 <SandboxPreviewFrame
+                  key={board.revision}
                   iframeRef={board.page.id === props.activePageId ? props.iframeRef : undefined}
                   html={board.compiled.html}
                   dimensions={board.compiled.dimensions}

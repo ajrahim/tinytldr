@@ -671,3 +671,149 @@ original/thumbnail bytes, real image/PDF/video outputs, cross-browser persistenc
 account isolation and deletion, quota concurrency, rollback, private access, and
 account-deletion tombstones. Non-fatal Firebase emulator/SDK warnings and the
 existing Vite chunk-size advisory remain. No live deployment or real provider calls.
+
+## Production publication: 2026-11-02
+
+The owner approved live publication and selected a separate Firebase Hosting API
+proxy rather than adding another Preview Cloud Run domain mapping.
+
+- `https://www.tinytldr.com` and `https://api.tinytldr.com` report
+  `HOST_ACTIVE`, `OWNERSHIP_ACTIVE`, `CERT_ACTIVE` and pass trusted HTTPS.
+  The API health endpoint returns 200; unsigned rendering and media requests
+  return 401 with the expected production-origin CORS headers.
+- `https://mcp.tinytldr.com/mcp` keeps its issuer and existing Preview routing.
+  Health/discovery return 200; unsigned MCP returns 401. Its runtime identity,
+  named database, private artifact bucket and bounded resources are unchanged.
+- API Cloud Build `91f46481-cd19-4387-bf26-554b48d695e8` succeeded. Digest
+  `sha256:45c59a47e2d829c9801cfd001d9c7bbaf89f42563337ae14cee012ef71fbf395`
+  is deployed as `tinytldr-api-00001-4x4`.
+- MCP Cloud Build `fd244f06-f60c-455e-9b32-e9d845341467` succeeded. Digest
+  `sha256:b415c74fe721b048c9544974c6c8e19d0ac95c48603a568afe1b09ce62ab1afd`
+  is deployed as `tinytldr-mcp-00003-6pk`. The audited source upload contained no
+  environment files, credentials, Git metadata or logs.
+- `npx --yes firebase-tools@15.34.2 deploy --project tinytldr-2baae --only "firestore,storage,functions:tinytldr" --non-interactive --force`
+  successfully published all five functions and private rules/indexes. Force
+  explicitly acknowledged the tested idempotent account-deletion retry policy.
+  `pnpm deploy:hosted hosting` successfully built the configured website and
+  published both Hosting sites.
+- Persistent Firebase media has no whole-bucket deletion lifecycle. A separate
+  private API bucket has one-day deletion. Both media runtime identities have
+  explicit object access only on the persistent bucket; the API has its own
+  identity and database/bucket-scoped authorization. Rate TTL is active.
+- The owner-approved disposable-account live smoke check passed password sign-in,
+  owned cloud design save, automatic cloud New design in Chromium, real API PNG
+  rendering and authenticated artifact download, byte-exact persistent upload/
+  export/poster reads, browser library reload, and official MCP client
+  OAuth/PKCE/initialize/list/render/download. It cleaned its own designs, media,
+  artifacts, OAuth/rate records and account. No existing account/data or AI keys
+  were used; no AI/provider calls were made.
+- Deployment exposed and repaired Windows quoted-command resolution, Firebase's
+  Windows slash normalization in the workspace selector, bundled CommonJS
+  built-in loading in ESM functions, public-font CORS for sandboxed previews,
+  and an asynchronous thumbnail-test assertion. No CSS/UI layout changes.
+  Regression tests cover the runner, separate API proxy, function bundle loading,
+  font headers and loaded distinct posters.
+- Final real demo Auth/Firestore/Storage emulator `pnpm check` passed **358 tests /
+  44 suites**, no skips, all format/lint/type gates and **9 MIT manifests /
+  304 permissive production dependencies**. `pnpm build` passed every workspace.
+  Non-fatal Firebase/Node tooling warnings and the Vite chunk advisory remain.
+  The packaged Firebase dependency install reported six moderate audit advisories;
+  no unrelated dependency updates were included in publication.
+
+## Exact composer images and context cleanup: 2026-11-02
+
+The owner approved exact attached-image placement, successful context cleanup,
+verification and publication, without layout/style changes or a general media
+picker. See the [shipped composer revision](../specs/WebsiteAiComposer.md).
+
+- Provider requests identify attached and existing raster images with stable
+  content-hashed references. The trusted gateway restores only recognized bytes;
+  unknown/malformed references, invented URL suffixes and invented raster data
+  fail explicitly. The model no longer needs to reproduce existing base64.
+- Placed images are self-contained in design data and share existing preview,
+  save/reload, source-download and sandboxed export paths. Oversized placement
+  fails with an actionable error; document/save limits and private Firebase
+  Library storage are unchanged.
+- Successful application clears submitted attachments/context while keeping
+  newer context and uploaded originals. Failed/cancelled/stale or uncompiled
+  results do not clear submitted input. Target chips and guarded Undo retain
+  shipped behavior.
+- `npx --yes firebase-tools@15.34.2 emulators:exec --project demo-tinytldr --only auth,firestore,storage --non-interactive "pnpm exec vitest run website\test\AiGeneration.test.ts website\test\AiComposerBrowser.test.ts"`
+  passed **28 tests / 2 suites**, including all provider protocols, exact bytes,
+  saved reload, PNG pixels, an actual PDF image, decoded video pixels, ffprobe
+  assertions and attachment lifecycle.
+- Final `npx --yes firebase-tools@15.34.2 emulators:exec --project demo-tinytldr --only auth,firestore,storage --non-interactive "pnpm check"`
+  passed **368 tests / 44 suites**, no skips, all format/lint/type gates and
+  **9 MIT manifests / 304 permissive production dependencies**. `pnpm build`
+  passed every workspace. Existing Firebase/Node tooling, packaged dependency
+  audit and Vite chunk-size advisories remain; no unrelated dependency changes.
+- `pnpm deploy:hosted "functions:tinytldr:ai,hosting:tinytldr-2baae"` published the
+  website and AI function. The final strict-reference update passed the full
+  gate/build again and `pnpm deploy:hosted "functions:tinytldr:ai"` succeeded.
+  AI revision `ai-00006-mac` is active; renderer/API/MCP containers were unchanged.
+- Live website JavaScript/styles match local release bytes. Separate disposable
+  Chromium guest preview passes with a secure context, no mixed resources,
+  horizontal overflow or JavaScript errors. API/MCP HTTPS health returns 200;
+  unsigned AI requests return 401 with correct production-origin CORS.
+  No paid provider calls or existing user data/credentials were used or changed.
+
+## Centered Library loading: 2026-11-02
+
+The owner approved replacing the visible Library loading line with a muted 24px
+spinner, centered in both axes between the filters and capacity bar, followed by
+verification and website publication. The accessible status is visually hidden;
+reduced motion disables rotation. Other Library states and layout are unchanged.
+See the [shipped Library revision](../specs/RenderedMediaLibrary.md#revision-centered-loading-spinner).
+
+- `npx --yes firebase-tools@15.34.2 emulators:exec --project demo-tinytldr --only auth,firestore,storage --non-interactive "pnpm exec vitest run website\test\MediaLibraryBrowser.test.ts"`
+  passed **11 tests**, including paused loading and exact centering within 1px
+  at 1440x900, 390x844, 320x568 and 640x360 in Day/Night, status accessibility,
+  normal/reduced motion, no overflow and success/error transitions.
+- `npx --yes firebase-tools@15.34.2 emulators:exec --project demo-tinytldr --only auth,firestore,storage --non-interactive "pnpm check"`
+  passed **369 tests / 44 suites**, no skips, all format/lint/type gates and
+  **9 MIT manifests / 304 permissive production dependencies**.
+  `pnpm build` passed every workspace.
+- `pnpm deploy:hosted "hosting:tinytldr-2baae"` successfully published only the
+  website. Live JavaScript/styles match the configured release build byte for
+  byte. Separate disposable Chromium checks pass the guest Library flow with
+  trusted HTTPS, no mixed resources, horizontal overflow or JavaScript errors.
+- Functions, API/MCP runtimes, credentials and existing user data were unchanged.
+  Existing Firebase/Node tooling and Vite chunk-size advisories remain.
+
+## Legal pages and Library routes: 2026-11-03
+
+The owner approved implementation, verification and website publication of
+`/privacy`, `/terms`, footer links and `/library`, with retained unfinished work.
+Confirmed public details are AJR Creative LLC, aj@ajr.co, age 18+ and Virginia/US
+law; no mailing address is published. See the
+[shipped specification](../specs/LegalAndLibraryRoutes.md).
+
+- Public legal pages work without backend configuration, focus their headings,
+  scroll independently of the workspace and fit Day/Night desktop/mobile. Policies
+  describe actual public links, private Library files, Firebase/browser storage,
+  optional AI/provider responsibilities, deletion limits and MIT/self-hosting.
+  They are original drafts; legal review is recommended, not certified.
+- The shell retains a separate workspace location across Library/legal surfaces;
+  real design navigation and New design retain their existing invalidation rules.
+  A browser reproduction exposed nested history entries from updating `srcDoc`.
+  Replacing the iframe for each compiled artboard revision produces zero new
+  history entries, keeping Back/Forward correct after generation or source edits.
+- `npx --yes firebase-tools@15.34.2 emulators:exec --project demo-tinytldr --only auth,firestore,storage --non-interactive "pnpm exec vitest run website\test\AiComposerBrowser.test.ts website\test\ArtboardWorkspaceBrowser.test.ts"`
+  passed **18 tests / 2 suites**, including hidden deferred generation, attachment
+  lifecycle, preview history, camera/iframe stability and touch controls.
+- `npx --yes firebase-tools@15.34.2 emulators:exec --project demo-tinytldr --only auth,firestore,storage --non-interactive "pnpm check"`
+  passed **375 tests / 44 suites**, no skips, all format/lint/type gates and
+  **9 MIT manifests / 304 permissive production dependencies**.
+  `pnpm build` passed every workspace.
+- `pnpm deploy:hosted "hosting:tinytldr-2baae"` successfully published only website
+  Hosting. All three live routes return HTTPS 200 and the configured release
+  index. All eight referenced JavaScript/styles match release bytes; main asset
+  `/assets/main-4AQgGD-H.js` has SHA-256
+  `141dedb008a57904b0c11fdee0d5fea55d519a3decdc33dd0f431b537eba62a7`.
+- Isolated, signed-out Chromium checks passed public policy content, no hidden
+  draft on direct legal entry, refresh, desktop/320px Day/Night layout, Library
+  direct load, Back/Forward and actual source/prompt/nondefault-camera retention.
+  No JavaScript errors or insecure resource requests were observed.
+- No functions, API/MCP runtime, production accounts, existing data or provider
+  keys changed. No paid AI calls were made. Existing non-fatal Firebase/Node
+  tooling and Vite chunk-size advisories remain.

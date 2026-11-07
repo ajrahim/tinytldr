@@ -8,7 +8,11 @@ Status: Shipped
 - The prompt starts visible. Hiding it preserves text, targets, attachments and ongoing generation rather than unmounting the composer.
 - History starts closed and opens when a request starts ("Thinking...") and again when an outcome arrives. Manual dismissal remains respected between those events; automatic opening must not steal focus.
 - History contains sent prompts and actual generation outcomes, not invented conversational replies or provider reasoning. No additional provider calls or API changes.
-- History is ephemeral for the current workspace/account and clears on refresh, navigation or account change. Do not persist prompts, attachments or results in browser/server storage.
+- History is ephemeral for the current workspace/account and clears on refresh,
+  navigation or account change. Do not persist conversation entries or raw
+  prompt/context history. Private Library uploads and images actually placed
+  into a saved design follow the [AI composer contract](./WebsiteAiComposer.md);
+  they are design/media data, not persisted conversations.
 - Cancellation, guarded undo, source/account/model invalidation and explicit errors remain accessible and truthful.
 - Results received during a Library visit remain in the same mounted workspace session and are shown on returning to the design, not over Library. Automatic history waits for unrelated modal dialogs to close.
 

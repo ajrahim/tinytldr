@@ -181,6 +181,12 @@ html.dark .media-card-delete:hover {
 .media-card:hover .media-thumbnail {
   border-color: var(--ui-text-muted);
 }
+.media-library-loading {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  color: var(--ui-text-muted);
+}
 .media-library-empty {
   display: flex;
   flex: 1;

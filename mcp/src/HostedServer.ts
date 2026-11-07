@@ -23,6 +23,7 @@ import { InvalidRequestError, OAuthError } from "@modelcontextprotocol/sdk/serve
 import { createTinytldrMcpServer } from "./index.js";
 import type { FirebaseOAuthProvider } from "./FirebaseOAuthProvider.js";
 import type { ArtifactStorage } from "./HostedArtifacts.js";
+import type { SavedDesignReader } from "./SavedDesignReader.js";
 import { HostedRenderGate, HostedRequestScope } from "./HostedRequestScope.js";
 import { validateHostedRenderBudget } from "./HostedRenderBudget.js";
 
@@ -36,6 +37,7 @@ const renderTools = new Set([
 export async function startHostedMcpServer(options: {
   provider: FirebaseOAuthProvider;
   storage: ArtifactStorage;
+  designs: SavedDesignReader;
   websiteDirectory: string;
   port?: number;
   host?: string;
@@ -181,6 +183,10 @@ export async function startHostedMcpServer(options: {
         artifacts: scope.artifacts,
         signal: scope.controller.signal,
         runRender: (operation) => scope.run(operation),
+        designs: {
+          list: () => options.designs.list(owner.uid),
+          get: (designId) => options.designs.get(owner.uid, designId),
+        },
       });
       const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
       res.once("close", () => {

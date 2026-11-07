@@ -46,6 +46,32 @@ export function createDeploymentConfiguration(base, environment) {
         "TINYTLDR_FIREBASE_FUNCTIONS_REGION",
       );
   }
+  const apiSite = environment.TINYTLDR_API_HOSTING_SITE?.trim();
+  if (apiSite) {
+    if (apiSite === configuration.hosting.site)
+      throw new Error("The API and website must use separate Firebase Hosting sites.");
+    configuration.hosting = [
+      configuration.hosting,
+      {
+        site: apiSite,
+        headers: [
+          {
+            source: "**",
+            headers: [{ key: "Cache-Control", value: "private, no-store" }],
+          },
+        ],
+        rewrites: [
+          {
+            source: "**",
+            run: {
+              serviceId: environment.TINYTLDR_API_SERVICE_ID,
+              region: environment.TINYTLDR_API_REGION,
+            },
+          },
+        ],
+      },
+    ];
+  }
   return configuration;
 }
 
@@ -165,14 +191,16 @@ export function apiDeploymentCommands(environment) {
   ];
 }
 
-function run(command, args, environment = process.env) {
+export function run(command, args, environment = process.env) {
   const windows = process.platform === "win32";
+  if (!/^[a-z][a-z0-9-]*$/i.test(command))
+    throw new Error("Deployment command must be a plain executable name.");
   const quote = (value) => {
     if (/["%\r\n]/.test(value)) throw new Error("Deployment argument contains unsafe characters.");
     return `"${value}"`;
   };
   const result = spawnSync(
-    windows ? [command, ...args].map(quote).join(" ") : command,
+    windows ? [command, ...args.map(quote)].join(" ") : command,
     windows ? [] : args,
     {
       cwd: root,

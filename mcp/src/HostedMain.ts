@@ -7,6 +7,7 @@ import { z } from "zod";
 import { firebaseAccountCreationTime, FirebaseOAuthProvider } from "./FirebaseOAuthProvider.js";
 import { firebaseArtifactStorage } from "./HostedArtifacts.js";
 import { startHostedMcpServer } from "./HostedServer.js";
+import { SavedDesignReader } from "./SavedDesignReader.js";
 
 async function main() {
   const configuration = z
@@ -52,6 +53,7 @@ async function main() {
   const service = await startHostedMcpServer({
     provider,
     storage: firebaseArtifactStorage(getStorage(app), configuration.bucket),
+    designs: new SavedDesignReader(getFirestore(app)),
     websiteDirectory: path.resolve(configuration.websiteDirectory),
     port: configuration.port,
     host: "0.0.0.0",

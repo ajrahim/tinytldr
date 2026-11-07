@@ -7,7 +7,9 @@ Status: Shipped (Firebase Storage revision; earlier local-only behavior is super
 - The sidebar starts with New design and My Library, followed by Designs.
 - A simple Connect an Agent card sits immediately above the bottom account card.
 - Account/sign-in controls live in that bottom card, not the toolbar.
-- My Library replaces the main pane, retaining the sidebar and mounted, unsaved editor.
+- My Library uses `/library` and replaces the main pane, retaining the sidebar and
+  mounted, unsaved editor. Direct entry, refresh, Back/Forward and return-to-design
+  behavior are covered by the [shipped routing revision](LegalAndLibraryRoutes.md).
 - A clean grid holds actual tinytldr-rendered images, videos, and PDFs; click to preview or download.
 - Rendered exports and prompt reference images are included. The approved Firebase Storage revision below replaces device-only persistence.
 
@@ -30,6 +32,36 @@ Status: Shipped (Firebase Storage revision; earlier local-only behavior is super
 - Responsive checks cover 320, 390, 768, and 1440px in both themes. Existing account, guest recovery, claiming, starter previews, and combined-header regressions remain green.
 - Visually inspected the desktop dark editor/library and mobile light library, image preview, and sidebar, including bottom agent/account placement.
 
+## Revision: Centered loading spinner
+
+State: Shipped.
+
+- Replace the visible "Opening your library..." line with the existing
+  `LoaderCircle` spinner, muted grey and 24px, centered horizontally and vertically
+  in the available content area below the filters and above the capacity bar.
+- Preserve the accessible loading status using visually hidden text; keep the
+  decorative icon hidden from assistive technology. Reduced-motion preferences
+  disable rotation. No changes to filters, storage, loaded/error/empty states,
+  account behavior or the remaining layout.
+- Verify paused real-emulator loading at desktop/mobile/short-landscape sizes in
+  Day/Night, within 1px of the available area's center, without horizontal
+  overflow. Verify normal/reduced motion and spinner removal on success/error.
+
+Evidence:
+
+- `npx --yes firebase-tools@15.34.2 emulators:exec --project demo-tinytldr --only auth,firestore,storage --non-interactive "pnpm exec vitest run website\test\MediaLibraryBrowser.test.ts"`
+  passed **11 tests**. Paused loading verifies both-axis centering within 1px at
+  1440x900, 390x844, 320x568 and 640x360 in Day/Night, an accessible hidden status,
+  a decorative 24px icon, normal rotation, reduced-motion inactivity, no overflow
+  and removal after success/error.
+- Final real demo Auth/Firestore/Storage `pnpm check` passed **369 tests / 44
+  suites**, no skips, all format/lint/type gates and **9 MIT / 304 permissive
+  production dependencies**. `pnpm build` passed all workspaces.
+- `pnpm deploy:hosted "hosting:tinytldr-2baae"` published only the website.
+  Production JavaScript/styles match local release bytes; isolated live Chromium
+  guest Library checks pass with trusted HTTPS, no mixed resources, overflow or
+  JavaScript errors. Functions, API/MCP services and user data were unchanged.
+
 ## Revision: Source toggle and uploads
 
 Approved scope:
@@ -38,7 +70,10 @@ Approved scope:
 - Uploads are PNG/JPEG/WebP reference images attached to the AI composer, deduplicated by SHA-256 per account. The Firebase revision supersedes the original IndexedDB storage.
 - An unreadable image raises a visible error but stays attached to the prompt. Non-image attachments are not saved.
 - The "Rendered exports · On this device" label and the arrow on "Back to your design" are removed. Each source has its own centered empty state; an empty type filter inside a non-empty source shows "Nothing here yet."
-- Reusing uploads as template logos or images is a future follow-up, not part of this revision.
+- Reusing uploads as template logos or images was deferred in this revision.
+  The [AI composer image-placement follow-up](./WebsiteAiComposer.md) supports
+  images attached to a submitted prompt; a general Library image picker remains
+  outside its scope.
 
 Evidence:
 

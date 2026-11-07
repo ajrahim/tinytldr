@@ -61,6 +61,9 @@ export interface PlaygroundPageProps {
   themeMode: SiteThemeMode;
   onWelcome: () => void;
   onMcp: () => void;
+  libraryOpen: boolean;
+  onLibraryChange: (open: boolean) => void;
+  workspaceVisible: boolean;
 }
 
 export function PlaygroundPage(props: PlaygroundPageProps) {
@@ -82,7 +85,7 @@ export function PlaygroundPage(props: PlaygroundPageProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { sidebarCollapsed, sourceEditorsOpen } = props;
   const sourceEditorsId = useId();
-  const [libraryOpen, setLibraryOpen] = useState(false);
+  const { libraryOpen } = props;
   const [composerHeight, setComposerHeight] = useState(160);
   const [promptControlsRoot, setPromptControlsRoot] = useState<HTMLDivElement | null>(null);
   const exporter = useExportJob(props.account.user?.id ?? null);
@@ -209,12 +212,12 @@ export function PlaygroundPage(props: PlaygroundPageProps) {
   };
   const startNewDesign = () =>
     closeSidebarAnd(() => {
-      setLibraryOpen(false);
+      props.onLibraryChange(false);
       void studio.createNewDesign();
     });
   const openLibrary = () => {
     setPlaying(false);
-    setLibraryOpen(true);
+    props.onLibraryChange(true);
   };
   const sidebar = (
     <DesignSidebar
@@ -224,11 +227,10 @@ export function PlaygroundPage(props: PlaygroundPageProps) {
       onNewDesign={startNewDesign}
       activeId={libraryOpen ? undefined : studio.activeId}
       libraryOpen={libraryOpen}
-      onLibrary={() => closeSidebarAnd(libraryOpen ? () => setLibraryOpen(false) : openLibrary)}
-      onNavigate={(path) => {
-        setLibraryOpen(false);
-        props.onNavigate(path);
-      }}
+      onLibrary={() =>
+        closeSidebarAnd(libraryOpen ? () => props.onLibraryChange(false) : openLibrary)
+      }
+      onNavigate={props.onNavigate}
       onSignIn={() => closeSidebarAnd(props.onSignIn)}
       onWelcome={() => closeSidebarAnd(props.onWelcome)}
       onMcp={() => closeSidebarAnd(props.onMcp)}
@@ -432,7 +434,7 @@ export function PlaygroundPage(props: PlaygroundPageProps) {
           <MediaLibrary
             key={props.account.user?.id ?? "guest"}
             userId={props.account.user?.id ?? null}
-            onBack={() => setLibraryOpen(false)}
+            onBack={() => props.onLibraryChange(false)}
           />
         )}
         <div className="studio-editor-pane" hidden={libraryOpen}>
@@ -656,7 +658,7 @@ export function PlaygroundPage(props: PlaygroundPageProps) {
                           onApply={studio.applyGeneratedProject}
                           onHeightChange={setComposerHeight}
                           controlsRoot={promptControlsRoot}
-                          workspaceVisible={!libraryOpen}
+                          workspaceVisible={props.workspaceVisible && !libraryOpen}
                         />
                       }
                     />

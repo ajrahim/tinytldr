@@ -102,6 +102,90 @@ describe.skipIf(!hasFirebaseEmulators)("Rendered media library", () => {
     ).toBeGreaterThanOrEqual(-1);
   }
 
+  it("centers an accessible loading spinner in the available library area across themes, sizes and motion preferences", async () => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    let release = () => {};
+    const pending = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    try {
+      await openEditor(page);
+      await page.route(site.mediaUrl, async (route) => {
+        const body = route.request().postDataJSON() as { action: string };
+        if (body.action === "list") await pending;
+        await route.continue();
+      });
+      await page.getByRole("button", { name: "My Library", exact: true }).click();
+      const status = page.locator(".media-library-loading");
+      const spinner = status.locator("svg");
+      await spinner.waitFor();
+      expect(await status.getAttribute("role")).toBe("status");
+      expect(await status.locator(".sr-only").textContent()).toBe("Opening your library...");
+      expect(
+        await status.locator(".sr-only").evaluate((element) => getComputedStyle(element).position),
+      ).toBe("absolute");
+      expect(await spinner.getAttribute("aria-hidden")).toBe("true");
+      await page.emulateMedia({ reducedMotion: "no-preference" });
+      for (const viewport of [
+        { width: 1440, height: 900 },
+        { width: 390, height: 844 },
+        { width: 320, height: 568 },
+        { width: 640, height: 360 },
+      ]) {
+        await page.setViewportSize(viewport);
+        for (const theme of ["Day", "Night"]) {
+          await page.getByRole("button", { name: theme, exact: true }).click();
+          const geometry = () =>
+            spinner.evaluate((element) => {
+              const library = element.closest(".media-library")!;
+              const bounds = library.getBoundingClientRect();
+              const toolbar = library.querySelector(".media-library-toolbar")!;
+              const top =
+                toolbar.getBoundingClientRect().bottom +
+                parseFloat(getComputedStyle(toolbar).marginBottom);
+              const bottom = library.querySelector(".media-capacity")!.getBoundingClientRect().top;
+              const indicator = element.getBoundingClientRect();
+              return {
+                x: (indicator.left + indicator.right - bounds.left - bounds.right) / 2,
+                y: (indicator.top + indicator.bottom - top - bottom) / 2,
+                clearance: Math.min(
+                  indicator.left - bounds.left,
+                  bounds.right - indicator.right,
+                  indicator.top - top,
+                  bottom - indicator.bottom,
+                ),
+                animation: getComputedStyle(element).animationName,
+                overflow: document.documentElement.scrollWidth > innerWidth,
+              };
+            });
+          await expect
+            .poll(async () => {
+              const { x, y } = await geometry();
+              return Math.abs(x) <= 1 && Math.abs(y) <= 1;
+            })
+            .toBe(true);
+          const measured = await geometry();
+          expect(measured.clearance).toBeGreaterThanOrEqual(0);
+          expect(measured.animation).toBe("spin");
+          expect(measured.overflow).toBe(false);
+          expect(await spinner.getAttribute("width")).toBe("24");
+          expect(await spinner.getAttribute("height")).toBe("24");
+        }
+      }
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await expect
+        .poll(() => spinner.evaluate((element) => getComputedStyle(element).animationName))
+        .toBe("none");
+      release();
+      await page.getByRole("heading", { name: "A little room for your finished work." }).waitFor();
+      expect(await status.count()).toBe(0);
+    } finally {
+      release();
+      await context.close();
+    }
+  });
+
   it("centers empty and filtered-empty library content beneath the toolbar across themes and viewport sizes", async () => {
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -303,7 +387,8 @@ describe.skipIf(!hasFirebaseEmulators)("Rendered media library", () => {
         await sources.getByRole("button", { name: "Exports" }).getAttribute("aria-pressed"),
       ).toBe("true");
       await page.reload();
-      await page.getByRole("button", { name: "My Library", exact: true }).click();
+      expect(new URL(page.url()).pathname).toBe("/library");
+      await page.getByRole("region", { name: "My Library", exact: true }).waitFor();
       await sources.getByRole("button", { name: "Uploads", exact: true }).click();
       await expect.poll(titles).toEqual(["Preview brand-logo", "Preview photo"]);
       await page.getByRole("button", { name: "Preview brand-logo", exact: true }).click();
@@ -763,10 +848,14 @@ describe.skipIf(!hasFirebaseEmulators)("Rendered media library", () => {
     );
     await page.getByRole("button", { name: "My Library", exact: true }).click();
     await expect.poll(() => page.locator(".media-card").count()).toBe(2);
-    const posterSources = await page
-      .locator(".media-card img")
-      .evaluateAll((images) => images.map((image) => image.getAttribute("src")));
-    expect(new Set(posterSources).size).toBe(2);
+    await expect
+      .poll(() =>
+        page.locator(".media-card img").evaluateAll((images) => ({
+          loaded: images.filter((image) => image.complete && image.naturalWidth > 0).length,
+          unique: new Set(images.map((image) => image.currentSrc)).size,
+        })),
+      )
+      .toEqual({ loaded: 2, unique: 2 });
     const invalid = await fetch(`${api.url}/v1/render`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -824,6 +913,7 @@ describe.skipIf(!hasFirebaseEmulators)("Rendered media library", () => {
     await page.getByRole("button", { name: "My Library", exact: true }).click();
     await page.getByText("A little room for your finished work.", { exact: true }).waitFor();
     expect(await page.locator(".media-card").count()).toBe(0);
+    expect(await page.locator(".media-library-loading").count()).toBe(0);
     await context.close();
   });
 
@@ -864,6 +954,7 @@ describe.skipIf(!hasFirebaseEmulators)("Rendered media library", () => {
       true,
     );
     expect(await corrupt.locator(".media-card").count()).toBe(0);
+    expect(await corrupt.locator(".media-library-loading").count()).toBe(0);
     await context.close();
   });
 

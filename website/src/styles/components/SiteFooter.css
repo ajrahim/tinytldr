@@ -16,6 +16,9 @@
   align-items: center;
   gap: 18px;
 }
+.site-footer a[aria-current="page"] {
+  color: var(--ui-text);
+}
 .site-footer button:hover:not(:disabled),
 .site-footer a:hover {
   color: var(--ui-text);
@@ -43,8 +46,15 @@
   .site-footer {
     padding-inline: 12px;
     font-size: 10px;
+    gap: 8px;
   }
   .site-footer nav {
-    gap: 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
+    row-gap: 4px;
+  }
+  .footer-theme-toggle {
+    flex-shrink: 0;
   }
 }

@@ -259,6 +259,84 @@ describe.skipIf(!hasFirebaseEmulators)("Compact icon header and editable saved v
     await context.close();
   });
 
+  it("places GitHub badges beside the welcome close button and the Day/Night toggle, and reveals the theme from the clicked control", async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const page = await context.newPage();
+    await page.addInitScript(() => {
+      const reveals: { clipPath: string[] }[] = [];
+      Object.assign(window, { themeReveals: reveals });
+      const animate = Element.prototype.animate;
+      Element.prototype.animate = function (keyframes, options) {
+        if (typeof options === "object" && options.pseudoElement === "::view-transition-new(root)")
+          reveals.push(keyframes as { clipPath: string[] });
+        return animate.call(this, keyframes, options);
+      };
+    });
+    const reveals = () =>
+      page.evaluate(
+        () => (window as unknown as { themeReveals: { clipPath: string[] }[] }).themeReveals,
+      );
+    const center = (box: { x: number; y: number; width: number; height: number }) => ({
+      x: box.x + box.width / 2,
+      y: box.y + box.height / 2,
+    });
+    async function expectBadgeBeside(
+      badge: ReturnType<Page["getByRole"]>,
+      control: ReturnType<Page["getByRole"]>,
+    ) {
+      expect(await badge.getAttribute("href")).toBe("https://github.com/ajrahim/tinytldr");
+      expect(await badge.getAttribute("target")).toBe("_blank");
+      const badgeBox = (await badge.boundingBox())!;
+      const controlBox = (await control.boundingBox())!;
+      const gap = controlBox.x - (badgeBox.x + badgeBox.width);
+      expect(gap).toBeGreaterThanOrEqual(0);
+      expect(gap).toBeLessThanOrEqual(12);
+      expect(Math.abs(center(badgeBox).y - center(controlBox).y)).toBeLessThanOrEqual(1);
+    }
+
+    await page.goto(site.baseUrl);
+    const welcome = page.getByRole("dialog", { name: "Welcome to tinytldr." });
+    await expectBadgeBeside(
+      welcome.getByRole("link", { name: "GitHub", exact: true }),
+      welcome.getByRole("button", { name: "Close guide", exact: true }),
+    );
+    await welcome.getByRole("button", { name: "Start Creating" }).click();
+    await page.getByRole("region", { name: "Artboard canvas" }).waitFor();
+
+    const footer = page.getByRole("contentinfo", { name: "Site footer" });
+    expect(await footer.getByRole("link", { name: "GitHub", exact: true }).count()).toBe(1);
+    await expectBadgeBeside(
+      footer.getByRole("link", { name: "GitHub", exact: true }),
+      footer.getByRole("group", { name: "Site appearance" }),
+    );
+
+    const night = footer.getByRole("button", { name: "Night", exact: true });
+    const origin = center((await night.boundingBox())!);
+    await night.click();
+    await expect.poll(() => page.locator("html").getAttribute("class")).toContain("dark");
+    await expect.poll(async () => (await reveals()).length).toBe(1);
+    const [from, to] = (await reveals())[0]!.clipPath;
+    const circle = /^circle\(([\d.]+)px at ([\d.]+)px ([\d.]+)px\)$/;
+    const [, startRadius, startX, startY] = circle.exec(from!)!.map(Number);
+    const [, endRadius, endX, endY] = circle.exec(to!)!.map(Number);
+    expect(startRadius).toBe(0);
+    expect(startX).toBeCloseTo(origin.x, 0);
+    expect(startY).toBeCloseTo(origin.y, 0);
+    expect([endX, endY]).toEqual([startX, startY]);
+    // The final circle covers the farthest viewport corner from the button.
+    expect(endRadius).toBeGreaterThanOrEqual(Math.hypot(origin.x, origin.y) - 1);
+
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await footer.getByRole("button", { name: "Day", exact: true }).click();
+    await expect.poll(() => page.locator("html").getAttribute("class")).toContain("light");
+    expect((await reveals()).length).toBe(1);
+
+    await page.setViewportSize({ width: 320, height: 844 });
+    expect(await footer.getByRole("link", { name: "GitHub", exact: true }).isVisible()).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
+    await context.close();
+  });
+
   it("preserves mounted editor undo, split ratio, and iframe across visibility changes, and reports hidden invalid drafts after reload", async () => {
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     const page = await context.newPage();

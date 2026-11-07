@@ -23,6 +23,12 @@
 .site-footer a:hover {
   color: var(--ui-text);
 }
+.footer-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+}
 .footer-theme-toggle {
   display: flex;
   gap: 2px;
@@ -54,7 +60,11 @@
     min-width: 0;
     row-gap: 4px;
   }
-  .footer-theme-toggle {
+  .footer-theme-toggle,
+  .footer-actions {
     flex-shrink: 0;
+  }
+  .footer-actions {
+    gap: 6px;
   }
 }

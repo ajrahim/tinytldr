@@ -60,9 +60,12 @@ describe.skipIf(!hasFirebaseEmulators)("Account settings", () => {
     expect((await site.auth.getUser(user.uid)).displayName).toBe("Tiny Author");
     expect(await dialog.getByLabel("Display name").inputValue()).toBe("Tiny Author");
     await dialog.getByRole("button", { name: "Night", exact: true }).click();
-    expect(
-      await dialog.getByRole("button", { name: "Night", exact: true }).getAttribute("aria-pressed"),
-    ).toBe("true");
+    // The Day/Night reveal applies the theme inside a view transition, after the click resolves.
+    await expect
+      .poll(() =>
+        dialog.getByRole("button", { name: "Night", exact: true }).getAttribute("aria-pressed"),
+      )
+      .toBe("true");
     expect(await heading.getAttribute("data-settings-probe")).toBe("unchanged");
     await dialog.getByRole("button", { name: "Close account dialog" }).click();
     expect((await downloadSource(page, "Download design JSON")).text).toBe(originalSource);

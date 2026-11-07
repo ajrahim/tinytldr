@@ -57,6 +57,15 @@
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
+.app-dialog-header-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  /* Matches the close button box and pulls the actions toward it across the header gap. */
+  margin: -4px -8px 0 0;
+}
 .app-dialog .dialog-close {
   display: grid;
   flex-shrink: 0;

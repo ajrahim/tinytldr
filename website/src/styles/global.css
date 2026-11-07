@@ -238,3 +238,10 @@ html.dark .notice-error {
   color: var(--ui-text);
   background-color: var(--ui-surface-subtle);
 }
+
+/* Day/Night switches reveal the new theme from the clicked control (see useThemeMode). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}

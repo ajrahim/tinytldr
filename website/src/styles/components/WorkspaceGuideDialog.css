@@ -69,6 +69,9 @@
 .is-welcome .dialog-close {
   margin: 0;
 }
+.is-welcome .app-dialog-header-actions {
+  margin-top: 0;
+}
 .is-welcome .app-dialog-body {
   padding: 24px 44px 16px;
 }

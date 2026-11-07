@@ -13,6 +13,7 @@ export function Dialog({
   size = "standard",
   initialFocus,
   closeDisabled = false,
+  headerActions,
 }: {
   title: string;
   description?: ReactNode;
@@ -25,6 +26,8 @@ export function Dialog({
   size?: "compact" | "standard" | "wide" | "media";
   initialFocus?: RefObject<HTMLElement | null>;
   closeDisabled?: boolean;
+  /** Controls placed immediately before the close button. */
+  headerActions?: ReactNode;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
@@ -90,6 +93,7 @@ export function Dialog({
           </h2>
           {description && <p className="app-dialog-description">{description}</p>}
         </div>
+        {headerActions && <div className="app-dialog-header-actions">{headerActions}</div>}
         <button
           ref={closeButton}
           type="button"

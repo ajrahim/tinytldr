@@ -407,6 +407,10 @@ describe.skipIf(!hasFirebaseEmulators)("Horizontal artboard workspace", () => {
       await page.setViewportSize({ width, height: 1000 });
       for (const appearance of ["Day", "Night"]) {
         await page.getByRole("button", { name: appearance, exact: true }).click();
+        // The Day/Night reveal applies the class inside a view transition, after the click resolves.
+        await expect
+          .poll(() => page.locator("html").getAttribute("class"))
+          .toContain(appearance === "Day" ? "light" : "dark");
         const actual = await canvas.evaluate((element) => {
           const style = getComputedStyle(element);
           const zoom = Number(element.dataset.zoom);

@@ -397,6 +397,8 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
     const first = await grid();
     expect(first.image).toContain("linear-gradient");
     await page.getByRole("button", { name: "Night", exact: true }).click();
+    // The Day/Night reveal applies the class inside a view transition, after the click resolves.
+    await expect.poll(() => page.locator("html").getAttribute("class")).toContain("dark");
     const dark = await grid();
     expect(dark.color).not.toBe(first.color);
     expect(dark.image).not.toBe(first.image);

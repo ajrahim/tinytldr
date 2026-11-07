@@ -13,6 +13,7 @@ import {
 import { HOSTED_MCP_URL } from "../lib/McpSnippetBuilder.js";
 import { CodeSnippetBox } from "./CodeSnippetBox.js";
 import { Dialog } from "./Dialog.js";
+import { GitHubBadge } from "./GitHubBadge.js";
 
 export type WorkspaceGuideTopic = "welcome" | "mcp" | "docs";
 export const WELCOME_STORAGE_KEY = "tinytldr:welcome:v1";
@@ -180,6 +181,7 @@ export function WorkspaceGuideDialog({
       initialFocus={startButton}
       closeLabel="Close guide"
       onClose={onClose}
+      headerActions={topic === "welcome" ? <GitHubBadge /> : undefined}
       footer={
         topic === "welcome" ? (
           <>

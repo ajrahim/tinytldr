@@ -3,6 +3,7 @@ import { CheckCircle2, ChevronRight, LogOut, Moon, Sun } from "lucide-react";
 import { ACCOUNT_DISPLAY_NAME_MAX_LENGTH, AI_PROVIDER_NAMES } from "@tinytldr/core";
 import type { Account } from "../hooks/useAccount.js";
 import type { AiConnections } from "../hooks/useAiConnections.js";
+import type { ThemeOrigin } from "../hooks/useThemeMode.js";
 import { AI_BACKEND_UNAVAILABLE_MESSAGE } from "../lib/AiRepository.js";
 import { Dialog } from "./Dialog.js";
 import { FirebaseLoginDialog } from "./FirebaseLoginDialog.js";
@@ -19,7 +20,7 @@ export function AccountDialog({
   account: Account;
   providers: AiConnections;
   themeMode: "light" | "dark";
-  onSetTheme: (theme: "light" | "dark") => void;
+  onSetTheme: (theme: "light" | "dark", origin?: ThemeOrigin) => void;
   nextPath: string;
   onClose: () => void;
   onProviders: () => void;
@@ -178,14 +179,14 @@ export function AccountDialog({
             <button
               type="button"
               aria-pressed={themeMode === "light"}
-              onClick={() => onSetTheme("light")}
+              onClick={(event) => onSetTheme("light", event.currentTarget.getBoundingClientRect())}
             >
               <Sun size={16} aria-hidden="true" /> Day
             </button>
             <button
               type="button"
               aria-pressed={themeMode === "dark"}
-              onClick={() => onSetTheme("dark")}
+              onClick={(event) => onSetTheme("dark", event.currentTarget.getBoundingClientRect())}
             >
               <Moon size={16} aria-hidden="true" /> Night
             </button>

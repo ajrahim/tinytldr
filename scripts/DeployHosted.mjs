@@ -5,7 +5,8 @@ import { fileURLToPath } from "node:url";
 
 const FIREBASE_TOOLS_VERSION = "15.34.2";
 const DEFAULT_TARGETS = "firestore,storage,functions:tinytldr,hosting";
-const root = fileURLToPath(new URL("../", import.meta.url));
+// Without a trailing separator so a quoted Windows argument cannot end in `\"`.
+const root = path.resolve(fileURLToPath(new URL("../", import.meta.url)));
 
 function required(environment, name) {
   const value = environment[name]?.trim();

@@ -139,6 +139,7 @@ describe("Firebase Hosting deployment configuration", () => {
   it("explicitly deploys a separate resource-limited API service with ADC and no MCP changes", () => {
     const commands = apiDeploymentCommands(environment);
     expect(commands[0][1]).toContainEqual(expect.stringContaining("cloudbuild.api.yaml"));
+    expect(commands[0][1][2]).not.toMatch(/[\\/]$/);
     const deploy = commands[1][1];
     expect(deploy.slice(0, 3)).toEqual(["run", "deploy", "website-api"]);
     expect(deploy).toContain("--allow-unauthenticated");

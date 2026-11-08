@@ -97,14 +97,10 @@ fieldset:disabled select {
   opacity: 0.5;
 }
 
-button:focus-visible,
-a:focus-visible,
-select:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-summary:focus-visible {
-  outline: 2px solid var(--ui-link);
-  outline-offset: 4px;
+/* No focus rings anywhere; hover and border states remain the visual cue. */
+:focus,
+:focus-visible {
+  outline: none;
 }
 
 .muted {

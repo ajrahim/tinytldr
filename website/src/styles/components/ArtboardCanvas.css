@@ -22,9 +22,6 @@ html.light .artboard-canvas {
   --canvas-label-background: rgba(255, 255, 255, 0.64);
   --canvas-label-border: rgba(255, 255, 255, 0.8);
 }
-.artboard-canvas:focus-visible:not(.is-pointer-focused) {
-  box-shadow: inset 0 0 0 1px var(--ui-text-muted);
-}
 .artboard-world {
   position: absolute;
   top: 0;
@@ -45,8 +42,7 @@ html.light .artboard-canvas {
   cursor: pointer;
   overflow: hidden;
 }
-.artboard.is-selected .artboard-sheet,
-.artboard-sheet:focus-visible {
+.artboard.is-selected .artboard-sheet {
   outline: calc(2px / var(--canvas-zoom)) solid var(--ui-text-muted);
 }
 .artboard-heading,
@@ -76,7 +72,6 @@ html.light .artboard-canvas {
   font-size: calc(12px / var(--canvas-zoom));
   font-weight: 500;
   text-overflow: ellipsis;
-  outline-offset: calc(3px / var(--canvas-zoom));
 }
 .artboard-remove {
   flex-shrink: 0;
@@ -108,7 +103,6 @@ html.light .artboard-canvas {
   color: var(--ui-text-secondary);
   font-size: calc(11px / var(--canvas-zoom));
   line-height: 1.6;
-  outline-offset: calc(5px / var(--canvas-zoom));
 }
 .artboard textarea::placeholder {
   color: var(--ui-text-muted);

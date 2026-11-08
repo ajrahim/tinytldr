@@ -172,7 +172,7 @@ describe.skipIf(!hasFirebaseEmulators)("Floating AI composer", () => {
               focused: element === document.activeElement,
               outline: getComputedStyle(element).outlineStyle,
             })),
-        ).toEqual({ focused: true, outline: "solid" });
+        ).toEqual({ focused: true, outline: "none" });
         await page.keyboard.press("Shift+Tab");
         expect(await focusStyle()).toEqual({ focused: true, outline: "none" });
         const canvas = (await page.getByLabel("Artboard canvas", { exact: true }).boundingBox())!;

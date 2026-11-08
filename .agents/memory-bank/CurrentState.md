@@ -2,6 +2,13 @@
 
 Source baseline: 2026-10-25.
 
+## No focus outlines: 2026-11-08
+
+- At the owner's request, `global.css` removes all focus outlines (`:focus`,
+  `:focus-visible`), including CodeMirror's and the canvas focus border. Hover,
+  background and border states remain; selection and drop-target outlines are
+  unchanged. The full emulator `pnpm check` passed 46/46 files and 388/388 tests.
+
 ## Sidebar folders, search and Local: 2026-11-08
 
 - The Designs sidebar now has search, Create Folder, an All section (every account

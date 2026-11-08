@@ -91,10 +91,6 @@
 .notice-button:hover {
   background: var(--ui-surface-subtle);
 }
-.notice-button:focus-visible {
-  outline: 2px solid var(--ui-link);
-  outline-offset: 2px;
-}
 .notice-close {
   margin-left: auto;
   border-color: transparent;

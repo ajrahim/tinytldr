@@ -395,7 +395,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
                 await button.evaluate(
                   (element) =>
                     element === document.activeElement &&
-                    getComputedStyle(element).outlineWidth === "2px",
+                    getComputedStyle(element).outlineStyle === "none",
                 ),
               ).toBe(true);
               const trigger = sidebar.getByRole("button", {

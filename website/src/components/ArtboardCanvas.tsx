@@ -56,7 +56,6 @@ export function ArtboardCanvas(props: ArtboardCanvasProps) {
   const space = useRef(false);
   const [panning, setPanning] = useState(false);
   const [spaceHeld, setSpaceHeld] = useState(false);
-  const [hasPointerFocus, setHasPointerFocus] = useState(false);
   const validDimensions =
     Number.isFinite(props.dimensions.width) &&
     Number.isFinite(props.dimensions.height) &&
@@ -219,7 +218,6 @@ export function ArtboardCanvas(props: ArtboardCanvasProps) {
     pointers.current.set(event.pointerId, point(event));
     event.currentTarget.setPointerCapture(event.pointerId);
     setPanning(true);
-    setHasPointerFocus(true);
     viewport.current?.focus({ preventScroll: true });
   };
   const pointerMove = (event: PointerEvent<HTMLDivElement>) => {
@@ -281,7 +279,7 @@ export function ArtboardCanvas(props: ArtboardCanvasProps) {
   return (
     <div
       ref={viewport}
-      className={`artboard-canvas${panning ? " is-panning" : ""}${spaceHeld ? " is-pan-ready" : ""}${hasPointerFocus ? " is-pointer-focused" : ""}`}
+      className={`artboard-canvas${panning ? " is-panning" : ""}${spaceHeld ? " is-pan-ready" : ""}`}
       role="region"
       aria-label="Artboard canvas"
       aria-description="Scroll to zoom around the pointer. Shift plus scroll or horizontal scroll pans. Hold Space and drag to pan, or pinch to zoom. Use arrow keys to pan, plus/minus to zoom, and 0 to fit all pages."
@@ -294,12 +292,8 @@ export function ArtboardCanvas(props: ArtboardCanvasProps) {
       onPointerMove={pointerMove}
       onPointerUp={(event) => releasePointer(event)}
       onPointerCancel={(event) => releasePointer(event, true)}
-      onBlur={(event) => {
-        if (event.target === event.currentTarget) setHasPointerFocus(false);
-      }}
       onLostPointerCapture={(event) => releasePointer(event, true)}
       onKeyDown={(event) => {
-        setHasPointerFocus(false);
         if (
           event.target instanceof Element &&
           event.target.closest(

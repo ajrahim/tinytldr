@@ -41,10 +41,6 @@
 .preview-split.is-dragging .preview-split-divider {
   background: var(--ui-surface-subtle);
 }
-.preview-split-divider:focus-visible {
-  outline: 1px solid var(--ui-link);
-  outline-offset: -1px;
-}
 .preview-split-divider:focus-visible span,
 .preview-split.is-dragging .preview-split-divider span {
   background: var(--ui-link);

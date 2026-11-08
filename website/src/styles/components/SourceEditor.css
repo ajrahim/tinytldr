@@ -45,8 +45,7 @@
   padding-left: 10px;
 }
 .source-editor .cm-editor.cm-focused {
-  outline: 1px solid var(--ui-link);
-  outline-offset: -1px;
+  outline: none;
 }
 @media (max-width: 800px) {
   .source-editor h2 {

@@ -100,10 +100,6 @@ html.dark .media-capacity.is-near-full .media-capacity-fill {
   text-align: left;
   border-radius: 8px;
 }
-.media-card-open:focus-visible {
-  outline: 2px solid var(--ui-link);
-  outline-offset: 3px;
-}
 .media-thumbnail {
   position: relative;
   display: block;
@@ -149,10 +145,6 @@ html.dark .media-capacity.is-near-full .media-capacity-fill {
 }
 html.dark .media-card-delete:hover {
   color: #f5a4a4;
-}
-.media-card-delete:focus-visible {
-  outline: 2px solid var(--ui-link);
-  outline-offset: 2px;
 }
 @media (hover: none) {
   .media-card-delete {

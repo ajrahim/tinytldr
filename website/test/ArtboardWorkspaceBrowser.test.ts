@@ -115,7 +115,7 @@ describe.skipIf(!hasFirebaseEmulators)("Horizontal artboard workspace", () => {
     }
   });
 
-  it("suppresses pointer-inherited canvas focus borders while retaining keyboard focus, selection and camera controls", async () => {
+  it("draws no canvas focus border while retaining keyboard focus, selection and camera controls", async () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     try {
@@ -148,7 +148,7 @@ describe.skipIf(!hasFirebaseEmulators)("Horizontal artboard workspace", () => {
           await expect
             .poll(async () => Number(await canvas.getAttribute("data-pan-x")))
             .toBe(beforePan - 40);
-          expect(await shadow()).not.toBe("none");
+          expect(await shadow()).toBe("none");
           await canvas.press("0");
           const selectionOutline = await outline();
           await sheet.click();
@@ -158,7 +158,7 @@ describe.skipIf(!hasFirebaseEmulators)("Horizontal artboard workspace", () => {
           await title.focus();
           await page.keyboard.press("Shift+Tab");
           expect(await canvas.evaluate((element) => element === document.activeElement)).toBe(true);
-          expect(await shadow()).not.toBe("none");
+          expect(await shadow()).toBe("none");
         }
       }
     } finally {

@@ -61,10 +61,6 @@
   filter: brightness(0.85);
   transform: translateY(1px);
 }
-.new-design-button:focus-visible {
-  outline: 2px solid var(--ui-link);
-  outline-offset: 2px;
-}
 .library-button:hover,
 .design-list-item:hover,
 .library-button.is-current {
@@ -113,8 +109,6 @@
 .design-search:focus-within,
 .create-folder-form:focus-within {
   border-color: var(--ui-border-strong);
-  outline: 2px solid var(--ui-link);
-  outline-offset: 1px;
 }
 .design-search input,
 .create-folder-form input {

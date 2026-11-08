@@ -28,8 +28,10 @@ permissions, image support, billing, or availability.
 Prompt toggles the composer without losing typed text, attachments, or work.
 Chat history is session-only and clears on workspace/account changes; it adds no
 extra provider calls. Requests target all artboards unless `@` selects stable
-artboard IDs. Targeted results cannot change other pages or project-wide title
-and dimensions.
+artboard IDs. Targeted results cannot change other pages or the project title,
+but they may add requested pages and change the shared dimensions. Ask for "5
+pages" or "make it 1200?800" (or a preset such as story) in either scope.
+Generation may take several minutes for multi-page designs.
 
 Text attachments remain transient context. Signed-in image attachments are also
 saved as private My Library uploads. When asked to place an attached image as a

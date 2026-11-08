@@ -244,7 +244,7 @@ describe("Provider API model discovery", () => {
           expect.fail("No call after abort.");
         },
       }),
-    ).rejects.toMatchObject({ status: 408 });
+    ).rejects.toMatchObject({ status: 504 });
     await expect(
       listProviderModels({
         ...options("custom"),

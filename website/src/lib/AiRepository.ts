@@ -30,7 +30,9 @@ async function call<Output, Input>(
     payload = await response.json();
   } catch {
     throw new Error(
-      `The Firebase AI service returned an invalid response (HTTP ${response.status}). Check its deployment.`,
+      [502, 503, 504].includes(response.status)
+        ? `The AI service timed out or was interrupted (HTTP ${response.status}). Try again, or ask for fewer pages at once.`
+        : `The Firebase AI service returned an invalid response (HTTP ${response.status}). Check its deployment.`,
     );
   }
   signal?.throwIfAborted();

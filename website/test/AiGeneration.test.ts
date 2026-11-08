@@ -4,6 +4,7 @@ import {
   AiGenerationInputSchema,
   AI_PROVIDER_BASE_URLS,
   mergeAiGeneration,
+  SIZE_PRESET_IDS,
   projectFromDocument,
   type AiProvider,
   type AiGenerationInput,
@@ -17,7 +18,12 @@ import {
   type AiGatewayServices,
   type AiConnectionStore,
 } from "../server/AiGateway.js";
-import { callAiProvider, providerBaseUrl, readAiJson } from "../server/AiProviders.js";
+import {
+  AI_MAX_OUTPUT_TOKENS,
+  callAiProvider,
+  providerBaseUrl,
+  readAiJson,
+} from "../server/AiProviders.js";
 import { AiImageAssets } from "../server/AiImageAssets.js";
 
 const id = "688b680f-7713-415c-8396-cbe636f1d41e";
@@ -90,6 +96,109 @@ describe("AI schemas and provider protocol", () => {
     expect(() => mergeAiGeneration(original, original, [original.pages[0]!.id])).toThrow(/outside/);
     expect(mergeAiGeneration(original, original, [])).toEqual(original);
   });
+  it("adds requested pages and applies a requested size", () => {
+    const original = makeRequest().document;
+    original.pages.push({ ...original.pages[0]!, id: "another", title: "Same name" });
+    const first = original.pages[0]!;
+    const resized = { width: 1200, height: 800 };
+    const fiveUp = {
+      ...original,
+      size: resized,
+      pages: Array.from({ length: 5 }, (_, index) => ({
+        ...first,
+        id: `page-${index + 1}`,
+        title: `Feature ${index + 1}`,
+      })),
+    };
+    const all = mergeAiGeneration(original, fiveUp, []);
+    expect(all.pages.map((page) => page.title)).toEqual(fiveUp.pages.map((page) => page.title));
+    expect(all.size).toEqual(resized);
+    const targeted = mergeAiGeneration(
+      original,
+      {
+        ...original,
+        size: resized,
+        pages: [
+          { ...first, description: "Updated" },
+          { ...first, id: "added", title: "Added" },
+        ],
+      },
+      [first.id],
+    );
+    expect(targeted.pages.map((page) => page.id)).toEqual([first.id, "added", "another"]);
+    expect(targeted.size).toEqual(resized);
+    expect(targeted.pages[2]).toEqual(original.pages[1]);
+    const unsupported = SIZE_PRESET_IDS.find(
+      (size) => !first.template.manifest.supportedSizes.includes(size),
+    );
+    if (unsupported)
+      expect(() =>
+        mergeAiGeneration(
+          original,
+          {
+            ...original,
+            size: unsupported,
+            pages: [
+              {
+                ...first,
+                template: {
+                  ...first.template,
+                  manifest: {
+                    ...first.template.manifest,
+                    supportedSizes: [...first.template.manifest.supportedSizes, unsupported],
+                  },
+                },
+              },
+            ],
+          },
+          [first.id],
+        ),
+      ).toThrow(/Choose All artboards/);
+    const crowded = {
+      ...original,
+      pages: [
+        first,
+        ...Array.from({ length: 19 }, (_, index) => ({ ...first, id: `extra-${index}` })),
+      ],
+    };
+    expect(() => mergeAiGeneration(original, crowded, [first.id])).toThrow(/limited to 20/);
+  });
+  it.each(["openai", "anthropic", "gemini", "custom"] as const)(
+    "explains truncated %s output and requests a large output budget",
+    async (provider) => {
+      const request = makeRequest();
+      let body = "";
+      const truncated =
+        provider === "anthropic"
+          ? { stop_reason: "max_tokens", content: [] }
+          : provider === "gemini"
+            ? { candidates: [{ finishReason: "MAX_TOKENS", content: { parts: [] } }] }
+            : { choices: [{ finish_reason: "length", message: { content: "{" } }] };
+      await expect(
+        callAiProvider({
+          secret: {
+            provider,
+            base_url:
+              provider === "custom"
+                ? "https://models.example.com/v1"
+                : AI_PROVIDER_BASE_URLS[provider],
+            model: "test",
+            api_key: secret,
+          },
+          allowedCustomUrls: ["https://models.example.com/v1"],
+          request,
+          signal: new AbortController().signal,
+          fetch: async (_url, init) => {
+            body = String(init?.body);
+            return Response.json(truncated);
+          },
+        }),
+      ).rejects.toThrow(/output limit/);
+      expect(body).toContain(String(AI_MAX_OUTPUT_TOKENS));
+      expect(body).toContain("return exactly N pages");
+      expect(body).toContain('{\\"width\\":W,\\"height\\":H}');
+    },
+  );
   it.each(["openai", "anthropic", "gemini", "custom"] as const)(
     "sends native %s text/image requests with bound credentials and no redirects",
     async (provider) => {
@@ -274,7 +383,7 @@ describe("AI schemas and provider protocol", () => {
         fetch: async () =>
           Response.json({ choices: [{ finish_reason: "length", message: { content: "{}" } }] }),
       }),
-    ).rejects.toThrow("did not finish");
+    ).rejects.toThrow("output limit");
     await expect(
       callAiProvider({
         ...options,

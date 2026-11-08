@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { WorkspaceProjectSchema, type WorkspaceProject } from "./WorkspaceProject.js";
+import {
+  MAX_WORKSPACE_PAGES,
+  WorkspaceProjectSchema,
+  type WorkspaceProject,
+} from "./WorkspaceProject.js";
 export { WorkspaceProjectSchema } from "./WorkspaceProject.js";
 
 export const AI_MAX_CONTEXT_ITEMS = 4;
@@ -158,17 +162,30 @@ export function mergeAiGeneration(
   const checked = WorkspaceProjectSchema.parse(generated);
   if (!targetPageIds.length) return checked;
   const targets = new Set(targetPageIds);
+  const originalIds = new Set(original.pages.map((page) => page.id));
   if (
     checked.title !== original.title ||
-    JSON.stringify(checked.size) !== JSON.stringify(original.size) ||
-    checked.pages.length !== targets.size ||
-    checked.pages.some((page) => !targets.has(page.id))
+    [...targets].some((id) => !checked.pages.some((page) => page.id === id)) ||
+    checked.pages.some((page) => originalIds.has(page.id) && !targets.has(page.id))
   )
     throw new Error(
       "The provider changed content outside the selected artboards. Nothing was applied.",
     );
-  return WorkspaceProjectSchema.parse({
-    ...original,
-    pages: original.pages.map((page) => checked.pages.find((next) => next.id === page.id) ?? page),
-  });
+  // New pages are inserted after the last selected artboard; a new size applies project-wide.
+  const added = checked.pages.filter((page) => !originalIds.has(page.id));
+  const pages = original.pages.map(
+    (page) => checked.pages.find((next) => next.id === page.id) ?? page,
+  );
+  const insertAt =
+    Math.max(...original.pages.map((page, index) => (targets.has(page.id) ? index : -1))) + 1;
+  pages.splice(insertAt, 0, ...added);
+  if (pages.length > MAX_WORKSPACE_PAGES)
+    throw new Error(`Designs are limited to ${MAX_WORKSPACE_PAGES} pages. Nothing was applied.`);
+  const merged = WorkspaceProjectSchema.safeParse({ ...original, size: checked.size, pages });
+  if (merged.success) return merged.data;
+  if (merged.error.issues.some((issue) => issue.message === "Designs must be smaller than 400 KB."))
+    throw merged.error;
+  throw new Error(
+    "The new size is not supported by the unselected artboards. Choose All artboards to resize the whole design. Nothing was applied.",
+  );
 }

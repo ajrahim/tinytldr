@@ -54,7 +54,9 @@ describe("Firebase AI repository", () => {
     );
     await expect(listAiConnections()).rejects.toThrow("Your session expired.");
     transport.fetch.mockResolvedValue(new Response("not JSON", { status: 502 }));
-    await expect(listAiConnections()).rejects.toThrow("invalid response (HTTP 502)");
+    await expect(listAiConnections()).rejects.toThrow("timed out or was interrupted (HTTP 502)");
+    transport.fetch.mockResolvedValue(new Response("not JSON", { status: 500 }));
+    await expect(listAiConnections()).rejects.toThrow("invalid response (HTTP 500)");
     transport.fetch.mockResolvedValue(Response.json({ connections: [{ id: "invalid" }] }));
     await expect(listAiConnections()).rejects.toThrow("Nothing was applied");
   });

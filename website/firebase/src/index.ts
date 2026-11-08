@@ -81,7 +81,7 @@ export const ai = onRequest(
     maxInstances: 2,
     memory: "512MiB",
     concurrency: 4,
-    timeoutSeconds: 120,
+    timeoutSeconds: 480,
     secrets: [encryptionKey],
   },
   createFirebaseHttpHandler(

@@ -44,7 +44,7 @@ function modelMetadata(id: string, name: string) {
 
 function checkCancelled(signal: AbortSignal) {
   if (signal.aborted)
-    throw new AiRequestError(408, "cancelled", "Model discovery was cancelled or timed out.");
+    throw new AiRequestError(504, "cancelled", "Model discovery was cancelled or timed out.");
 }
 
 export async function listProviderModels(options: {

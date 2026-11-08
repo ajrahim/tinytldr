@@ -19,6 +19,9 @@ import {
 } from "./AiProviders.ts";
 import { listProviderModels } from "./AiModels.ts";
 
+// Multi-page designs from reasoning models routinely take several minutes.
+export const AI_GENERATION_TIMEOUT_MS = 420_000;
+
 type AiConnection = z.infer<typeof AiConnectionSchema>;
 type AiProviderConnectionInput = z.infer<typeof AiProviderConnectionInputSchema>;
 type AiModels = z.infer<typeof AiModelsSchema>;
@@ -156,7 +159,7 @@ export function createAiGateway(services: AiGatewayServices) {
           request: action.request,
           allowedCustomUrls: services.customBaseUrls,
           fetch: services.fetch,
-          signal: AbortSignal.any([request.signal, AbortSignal.timeout(90_000)]),
+          signal: AbortSignal.any([request.signal, AbortSignal.timeout(AI_GENERATION_TIMEOUT_MS)]),
         });
         if (!generated)
           throw new AiRequestError(502, "provider_output", "The provider returned no design.");
@@ -180,7 +183,9 @@ export function createAiGateway(services: AiGatewayServices) {
           throw new AiRequestError(
             502,
             "scope",
-            "The provider changed content outside the selected artboards. Nothing was applied.",
+            error instanceof Error && !(error instanceof z.ZodError)
+              ? error.message
+              : "The generated design did not pass validation. Nothing was applied.",
           );
         }
         if (Buffer.byteLength(JSON.stringify(document), "utf8") > 500_000)

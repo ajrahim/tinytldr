@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "./global.css";
 @import "./components/Dropdown.css";
-@import "./components/InfoTooltip.css";
 @import "./components/SiteHeader.css";
 @import "./components/SiteFooter.css";
 @import "./components/GitHubBadge.css";

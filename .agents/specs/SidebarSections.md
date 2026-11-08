@@ -12,6 +12,7 @@ Improve the Designs sidebar's section hierarchy, not its data behavior.
 Account and This browser use concise headings, truthful counts and a subtle
 divider. Empty groups show "No designs yet". Ownership and browser-history
 explanations move to info tooltips available with hover, keyboard focus or tap.
+(Superseded: [Sidebar folders](./SidebarFolders.md) removed these tooltips.)
 Rows and the list scrollbar become more compact; bottom actions stay anchored.
 
 ## Invariants and exclusions

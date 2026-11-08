@@ -22,7 +22,6 @@ import {
 import type { DesignHistory } from "../hooks/useDesignHistory.js";
 import type { DesignFolders } from "../hooks/useDesignFolders.js";
 import type { SiteThemeMode, ThemeOrigin } from "../hooks/useThemeMode.js";
-import { InfoTooltip } from "./InfoTooltip.js";
 import { Dropdown } from "./Dropdown.js";
 import { GitHubBadge } from "./GitHubBadge.js";
 import { ThemeToggle } from "./ThemeToggle.js";
@@ -229,8 +228,6 @@ export function DesignSidebar({
             title="All"
             icon={<FolderOpen size={14} aria-hidden="true" />}
             count={ownedDesigns.length}
-            help="Every design saved to your account. Drag a design here to take it out of its folder."
-            helpLabel="About account designs"
             expanded={searching || isExpanded("all")}
             onToggle={() => toggle("all")}
             drop={dropProps("all", null)}
@@ -299,8 +296,6 @@ export function DesignSidebar({
           title="Local"
           icon={<HardDrive size={14} aria-hidden="true" />}
           count={history.entries.length}
-          help="Unclaimed designs and drafts kept only in this browser. New windows appear here after your first edit. Claim a design to add it to your account."
-          helpLabel="About local designs"
           expanded={searching || isExpanded("local")}
           onToggle={() => toggle("local")}
         >
@@ -387,8 +382,6 @@ function DesignGroup({
   title,
   icon,
   count,
-  help,
-  helpLabel,
   expanded,
   onToggle,
   drop,
@@ -398,8 +391,6 @@ function DesignGroup({
   title: string;
   icon: ReactNode;
   count: number;
-  help?: string;
-  helpLabel?: string;
   expanded: boolean;
   onToggle: () => void;
   drop?: DropProps;
@@ -428,17 +419,11 @@ function DesignGroup({
           <ChevronRight size={12} aria-hidden="true" />
           {icon}
         </button>
-        {help ? (
-          <InfoTooltip label={helpLabel ?? `About ${title}`} title={title} headingId={headingId}>
-            {help}
-          </InfoTooltip>
-        ) : (
-          <h3 id={headingId} className="design-group-title" title={title}>
-            <button type="button" onClick={onToggle} tabIndex={-1}>
-              {title}
-            </button>
-          </h3>
-        )}
+        <h3 id={headingId} className="design-group-title" title={title}>
+          <button type="button" onClick={onToggle} tabIndex={-1}>
+            {title}
+          </button>
+        </h3>
         {menu}
         <span
           className="design-section-count"

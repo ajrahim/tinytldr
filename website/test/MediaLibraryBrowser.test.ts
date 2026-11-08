@@ -989,12 +989,9 @@ describe.skipIf(!hasFirebaseEmulators)("Rendered media library", () => {
         .locator(".design-section-count")
         .textContent(),
     ).toBe(String(historyCount));
-    await page.getByRole("button", { name: "About local designs" }).hover();
-    await page.getByRole("tooltip").waitFor();
     await page.locator(".design-sidebar nav").evaluate((nav) => {
       nav.scrollTop = nav.scrollHeight;
     });
-    await expect.poll(() => page.getByRole("tooltip").isVisible()).toBe(false);
     expect(await account.boundingBox()).toEqual(before);
     expect(before!.y + before!.height).toBeLessThanOrEqual(720);
     await page.setViewportSize({ width: 390, height: 844 });

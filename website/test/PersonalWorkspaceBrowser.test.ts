@@ -108,7 +108,7 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
     }
   });
 
-  it("sections All and Local designs compactly, keeps fresh windows out of Local until edited, with accessible help in both themes", async () => {
+  it("sections All and Local designs compactly and keeps fresh windows out of Local until edited", async () => {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const page = await context.newPage();
     try {
@@ -142,70 +142,22 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
             bottom: getComputedStyle(element).paddingBottom,
           })),
       ).toEqual({ top: "9px", bottom: "9px" });
-      const accountHelp = account.getByRole("button", { name: "About account designs" });
-      const browserHelp = local.getByRole("button", { name: "About local designs" });
-      const tooltip = page.getByRole("tooltip");
-      const before = (await downloadSource(page, "Download design JSON")).text;
-      for (const theme of ["Day", "Night"] as const) {
-        await chooseSiteTheme(page, theme);
-        await accountHelp.hover();
-        await tooltip.waitFor();
-        expect(await tooltip.textContent()).toContain("Every design saved to your account");
-        expect(await accountHelp.getAttribute("aria-describedby")).toBe(
-          await tooltip.getAttribute("id"),
-        );
-        const box = (await tooltip.boundingBox())!;
-        expect(box.x).toBeGreaterThanOrEqual(8);
-        expect(box.x + box.width).toBeLessThanOrEqual(1432);
-        expect(box.y).toBeGreaterThanOrEqual(8);
-        expect(box.y + box.height).toBeLessThanOrEqual(892);
-        expect(
-          await tooltip.evaluate((element) => {
-            const bounds = element.getBoundingClientRect();
-            return (
-              element.matches(":popover-open") &&
-              element.contains(
-                document.elementFromPoint(
-                  bounds.x + bounds.width / 2,
-                  bounds.y + bounds.height / 2,
-                ),
-              )
-            );
-          }),
-        ).toBe(true);
-        await tooltip.hover();
-        await page.waitForTimeout(200);
-        expect(await tooltip.isVisible()).toBe(true);
-        await page.keyboard.press("Escape");
-        await expect.poll(() => tooltip.isVisible()).toBe(false);
-        await page.mouse.move(1200, 800);
-        await accountHelp.focus();
-        await tooltip.waitFor();
-        await page.keyboard.press("Escape");
-        await expect.poll(() => tooltip.isVisible()).toBe(false);
-        await accountHelp.press("Tab");
-        await expect.poll(() => tooltip.isVisible()).toBe(false);
-        expect(
-          await local
-            .getByRole("button", { name: "Collapse Local section" })
-            .evaluate((element) => element === document.activeElement),
-        ).toBe(true);
-        await page.keyboard.press("Tab");
-        await tooltip.waitFor();
-        expect(await tooltip.textContent()).toContain("drafts kept only in this browser");
-        expect(await browserHelp.evaluate((element) => element === document.activeElement)).toBe(
-          true,
-        );
-        await browserHelp.press("Tab");
-        await expect.poll(() => tooltip.isVisible()).toBe(false);
-        expect((await downloadSource(page, "Download design JSON")).text).toBe(before);
-      }
+      expect(
+        await sidebar.getByRole("button", { name: /^About (account|local) designs$/ }).count(),
+      ).toBe(0);
+      expect(await sidebar.locator(".info-tooltip").count()).toBe(0);
+      expect(await account.getByRole("heading", { name: "All", exact: true }).isVisible()).toBe(
+        true,
+      );
+      expect(await local.getByRole("heading", { name: "Local", exact: true }).isVisible()).toBe(
+        true,
+      );
     } finally {
       await context.close();
     }
   });
 
-  it("opens and dismisses section help by touch without clipping or closing the mobile drawer", async () => {
+  it("shows only search and Local in the signed-out mobile drawer", async () => {
     const context = await browser.newContext({
       viewport: { width: 390, height: 844 },
       hasTouch: true,
@@ -214,47 +166,20 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
     try {
       await page.goto(site.baseUrl);
       await waitForCanvas(page);
-      const tooltip = page.getByRole("tooltip");
-      for (const theme of ["Day", "Night"] as const) {
-        await page.setViewportSize({ width: 390, height: 844 });
-        await chooseSiteTheme(page, theme);
-        await page.getByRole("button", { name: "Open sidebar", exact: true }).tap();
-        const drawer = page.getByRole("dialog", { name: "Your designs menu" });
-        const sidebar = drawer.getByRole("complementary", { name: "Your designs" });
-        expect(await sidebar.getByRole("region", { name: "All", exact: true }).count()).toBe(0);
-        expect(await sidebar.getByRole("button", { name: "Create Folder" }).count()).toBe(0);
-        const help = sidebar.getByRole("button", { name: "About local designs" });
-        await help.tap();
-        await tooltip.waitFor();
-        const box = (await tooltip.boundingBox())!;
-        expect(box.x).toBeGreaterThanOrEqual(8);
-        expect(box.x + box.width).toBeLessThanOrEqual(382);
-        expect(box.y + box.height).toBeLessThanOrEqual(836);
-        expect(
-          await tooltip.evaluate((element) => {
-            const bounds = element.getBoundingClientRect();
-            return element.contains(
-              document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2),
-            );
-          }),
-        ).toBe(true);
-        await help.tap();
-        await expect.poll(() => tooltip.isVisible()).toBe(false);
-        await help.tap();
-        await tooltip.waitFor();
-        await page.keyboard.press("Escape");
-        await expect.poll(() => tooltip.isVisible()).toBe(false);
-        expect(await drawer.isVisible()).toBe(true);
-        await help.tap();
-        await tooltip.waitFor();
-        await drawer.getByRole("searchbox", { name: "Search designs" }).tap();
-        await expect.poll(() => tooltip.isVisible()).toBe(false);
-        await help.tap();
-        await tooltip.waitFor();
-        await page.setViewportSize({ width: 390, height: 740 });
-        await expect.poll(() => tooltip.isVisible()).toBe(false);
-        await drawer.getByRole("button", { name: "Close sidebar", exact: true }).tap();
-      }
+      await page.getByRole("button", { name: "Open sidebar", exact: true }).tap();
+      const drawer = page.getByRole("dialog", { name: "Your designs menu" });
+      const sidebar = drawer.getByRole("complementary", { name: "Your designs" });
+      await sidebar.getByRole("searchbox", { name: "Search designs" }).waitFor();
+      expect(await sidebar.getByRole("region", { name: "All", exact: true }).count()).toBe(0);
+      expect(await sidebar.getByRole("button", { name: "Create Folder" }).count()).toBe(0);
+      expect(await sidebar.getByRole("region", { name: "Local", exact: true }).isVisible()).toBe(
+        true,
+      );
+      expect(
+        await sidebar.getByRole("button", { name: /^About (account|local) designs$/ }).count(),
+      ).toBe(0);
+      await drawer.getByRole("button", { name: "Close sidebar", exact: true }).tap();
+      expect(await drawer.isVisible()).toBe(false);
     } finally {
       await context.close();
     }

@@ -23,6 +23,8 @@ Restructure the Designs sidebar and stop saving untouched windows:
 - Search filters All, the folders and Local by title. Folders with no match are
   hidden while searching.
 - Signed-out visitors see only Search and Local.
+- Section headings are self-explanatory. All and Local have no info tooltips, and
+  the unused `InfoTooltip` component is removed.
 
 ## Design
 

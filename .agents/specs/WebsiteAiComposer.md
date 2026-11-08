@@ -19,6 +19,11 @@ State: Shipped. Current connection/storage behavior is defined by
   token limit (`max_output_tokens`, 1,000?128,000, default 32,000, set in the AI
   connection dialog and saved via the `tokens` action);
   timeouts return JSON 504 and truncated output explains the output limit.
+- Generations still running after 15 s commit to HTTP 200 and stream whitespace
+  heartbeats until the final JSON (`{document}` or `{error, code}`), so proxies do
+  not drop idle connections. Provider fetches use an undici agent without the
+  default 300 s header/body timeouts. The site calls the function's direct Cloud
+  Run URL rather than the `cloudfunctions.net` proxy.
 - Bound prompt, context, responses, time, and account request rates. Custom
   endpoints require exact operator-approved HTTPS destinations, without
   credentials, query strings, redirects, or per-request overrides.

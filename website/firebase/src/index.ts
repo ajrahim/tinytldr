@@ -5,6 +5,7 @@ import { getStorage } from "firebase-admin/storage";
 import { onRequest } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions";
 import { defineSecret } from "firebase-functions/params";
+import { Agent, fetch as undiciFetch } from "undici";
 import { region } from "firebase-functions/v1";
 import { createDesignGateway } from "./DesignGateway.js";
 import { DesignService } from "./DesignService.js";
@@ -73,6 +74,14 @@ export const deleteMediaAccount = region("us-central1")
   .onDelete((user) => getMediaService().deleteAccount(user.uid));
 
 const encryptionKey = defineSecret("TINYTLDR_AI_ENCRYPTION_KEY");
+// Node's default 300s header/body timeouts would cut off long non-streaming provider calls;
+// the gateway's own abort signal bounds them instead.
+const providerAgent = new Agent({ headersTimeout: 0, bodyTimeout: 0 });
+const providerFetch = ((input: string | URL, init?: RequestInit) =>
+  undiciFetch(input, {
+    ...(init as Parameters<typeof undiciFetch>[1]),
+    dispatcher: providerAgent,
+  })) as unknown as typeof fetch;
 const aiService = new AiConnectionService(database, () => encryptionKey.value());
 export const ai = onRequest(
   {
@@ -93,7 +102,7 @@ export const ai = onRequest(
         .split(",")
         .map((value) => value.trim())
         .filter(Boolean),
-      fetch,
+      fetch: providerFetch,
       reportError: (code) => logger.error("Firebase AI request failed.", { code }),
     }),
   ),

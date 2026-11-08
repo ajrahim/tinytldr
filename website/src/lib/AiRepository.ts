@@ -36,12 +36,10 @@ async function call<Output, Input>(
     );
   }
   signal?.throwIfAborted();
-  if (!response.ok) {
-    const error = AiGatewayErrorSchema.safeParse(payload);
-    throw new Error(
-      error.success ? error.data.error : `Firebase AI operation failed (HTTP ${response.status}).`,
-    );
-  }
+  const error = AiGatewayErrorSchema.safeParse(payload);
+  // Slow generations are streamed with a 200 heartbeat, so errors can also arrive with HTTP 200.
+  if (error.success) throw new Error(error.data.error);
+  if (!response.ok) throw new Error(`Firebase AI operation failed (HTTP ${response.status}).`);
   const checked = schema.safeParse(payload);
   if (!checked.success)
     throw new Error("The AI service returned an invalid response. Nothing was applied.");

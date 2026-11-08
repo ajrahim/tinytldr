@@ -14,6 +14,9 @@ interface FirebaseHttpResponse extends HttpConnection {
   status(code: number): void;
   setHeader(name: string, value: string): void;
   send(body: Buffer): void;
+  write(chunk: Uint8Array): boolean;
+  end(): void;
+  flushHeaders(): void;
 }
 export function createFirebaseHttpHandler(
   gateway: (request: Request) => Promise<Response>,
@@ -40,7 +43,22 @@ export function createFirebaseHttpHandler(
       );
       response.status(result.status);
       result.headers.forEach((value, key) => response.setHeader(key, value));
-      response.send(Buffer.from(await result.arrayBuffer()));
+      if (result.headers.get("X-Accel-Buffering") === "no" && result.body) {
+        // Streamed heartbeat responses must reach the client chunk by chunk.
+        response.flushHeaders();
+        const reader = result.body.getReader();
+        try {
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            if (response.writableEnded) break;
+            response.write(value);
+          }
+        } finally {
+          await reader.cancel().catch(() => undefined);
+          if (!response.writableEnded) response.end();
+        }
+      } else response.send(Buffer.from(await result.arrayBuffer()));
     } finally {
       request.off("aborted", abort);
       response.off("close", close);

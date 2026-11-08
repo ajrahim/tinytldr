@@ -510,6 +510,45 @@ describe("Authenticated AI gateway", () => {
     });
     expect(JSON.parse(body).max_tokens).toBe(96_000);
   });
+  it("streams whitespace heartbeats for slow generations and ends with the final JSON", async () => {
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const test = fixture({
+      heartbeatMs: 5,
+      fetch: async () => {
+        await gate;
+        return Response.json(providerResponse("openai", JSON.stringify(makeRequest().document)));
+      },
+    });
+    const response = await test.send({ action: "generate", request: makeRequest() });
+    expect(response.status).toBe(200);
+    expect(response.headers.get("access-control-allow-origin")).toBe("https://app.example.com");
+    const reader = response.body!.getReader();
+    expect(new TextDecoder().decode((await reader.read()).value)).toBe(" ");
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    release();
+    let text = " ";
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      text += new TextDecoder().decode(value);
+    }
+    expect(text.startsWith("  ")).toBe(true);
+    expect(JSON.parse(text).document.pages).toHaveLength(makeRequest().document.pages.length);
+  });
+  it("reports slow generation failures as a JSON error after the heartbeat starts", async () => {
+    const test = fixture({
+      heartbeatMs: 5,
+      fetch: async () => {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        return Response.json(providerResponse("openai", "not json"));
+      },
+    });
+    const response = await test.send({ action: "generate", request: makeRequest() });
+    expect(response.status).toBe(200);
+    const payload = JSON.parse(await response.text());
+    expect(payload).toEqual({ error: expect.any(String), code: expect.any(String) });
+  });
   it("checks account and origin before any secret lookup", async () => {
     const test = fixture();
     expect(

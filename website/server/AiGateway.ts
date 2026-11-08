@@ -58,6 +58,61 @@ export interface AiGatewayServices {
   allowedOrigins: readonly string[];
   customBaseUrls: readonly string[];
   reportError: (code: string) => void;
+  heartbeatMs?: number;
+}
+
+export const AI_HEARTBEAT_MS = 15_000;
+
+/**
+ * Long generations would otherwise hold a silent connection for minutes, which proxies drop
+ * with an HTML 502. Fast results keep their real status; slow ones commit to 200 and send
+ * JSON-insignificant whitespace until the final JSON body (a design or an error object).
+ */
+async function heartbeat(
+  work: Promise<Response>,
+  headers: Record<string, string>,
+  intervalMs: number,
+): Promise<Response> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const early = await Promise.race([
+    work,
+    new Promise<null>((resolve) => (timer = setTimeout(() => resolve(null), intervalMs))),
+  ]);
+  clearTimeout(timer);
+  if (early) return early;
+  const space = new TextEncoder().encode(" ");
+  let interval: ReturnType<typeof setInterval> | undefined;
+  const body = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      controller.enqueue(space);
+      interval = setInterval(() => {
+        try {
+          controller.enqueue(space);
+        } catch {
+          clearInterval(interval);
+        }
+      }, intervalMs);
+      const result = await work;
+      clearInterval(interval);
+      try {
+        controller.enqueue(new Uint8Array(await result.arrayBuffer()));
+        controller.close();
+      } catch {
+        // The client disconnected; the gateway signal already cancelled the provider call.
+      }
+    },
+    cancel() {
+      clearInterval(interval);
+    },
+  });
+  return new Response(body, {
+    status: 200,
+    headers: {
+      ...headers,
+      "Content-Type": "application/json",
+      "X-Accel-Buffering": "no",
+    },
+  });
 }
 
 export function createAiGateway(services: AiGatewayServices) {
@@ -71,6 +126,21 @@ export function createAiGateway(services: AiGatewayServices) {
     };
     if (origin && services.allowedOrigins.includes(origin))
       headers["Access-Control-Allow-Origin"] = origin;
+    const failure = (error: unknown) => {
+      const safe =
+        error instanceof AiRequestError
+          ? error
+          : new AiRequestError(
+              500,
+              "storage",
+              "The AI service could not complete this request. Check its Firebase deployment. Your design is unchanged.",
+            );
+      services.reportError(safe.code);
+      return Response.json(
+        { error: safe.message, code: safe.code },
+        { status: safe.status, headers },
+      );
+    };
     try {
       if (!services.allowedOrigins.length)
         throw new AiRequestError(503, "configuration", "AI service origins are not configured.");
@@ -155,47 +225,57 @@ export function createAiGateway(services: AiGatewayServices) {
             "rate",
             "Up to 5 generations per minute are allowed. Please wait.",
           );
-        const generated = await callAiProvider({
-          secret: secret.data,
-          request: action.request,
-          allowedCustomUrls: services.customBaseUrls,
-          fetch: services.fetch,
-          signal: AbortSignal.any([request.signal, AbortSignal.timeout(AI_GENERATION_TIMEOUT_MS)]),
-        });
-        if (!generated)
-          throw new AiRequestError(502, "provider_output", "The provider returned no design.");
-        let document;
-        try {
-          document = mergeAiGeneration(
-            action.request.document,
-            generated,
-            action.request.targetPageIds,
-          );
-        } catch (error) {
-          if (
-            error instanceof z.ZodError &&
-            error.issues.some((issue) => issue.message === "Designs must be smaller than 400 KB.")
-          )
+        const generation = async () => {
+          const generated = await callAiProvider({
+            secret: secret.data,
+            request: action.request,
+            allowedCustomUrls: services.customBaseUrls,
+            fetch: services.fetch,
+            signal: AbortSignal.any([
+              request.signal,
+              AbortSignal.timeout(AI_GENERATION_TIMEOUT_MS),
+            ]),
+          });
+          if (!generated)
+            throw new AiRequestError(502, "provider_output", "The provider returned no design.");
+          let document;
+          try {
+            document = mergeAiGeneration(
+              action.request.document,
+              generated,
+              action.request.targetPageIds,
+            );
+          } catch (error) {
+            if (
+              error instanceof z.ZodError &&
+              error.issues.some((issue) => issue.message === "Designs must be smaller than 400 KB.")
+            )
+              throw new AiRequestError(
+                502,
+                "size",
+                "The generated design exceeds the 400 KB document limit. Use a smaller image or request a smaller change. Nothing was applied.",
+              );
+            throw new AiRequestError(
+              502,
+              "scope",
+              error instanceof Error && !(error instanceof z.ZodError)
+                ? error.message
+                : "The generated design did not pass validation. Nothing was applied.",
+            );
+          }
+          if (Buffer.byteLength(JSON.stringify(document), "utf8") > 500_000)
             throw new AiRequestError(
               502,
               "size",
-              "The generated design exceeds the 400 KB document limit. Use a smaller image or request a smaller change. Nothing was applied.",
+              "The generated design exceeds the 500 KB UTF-8 save limit. Use a smaller image or request a smaller change. Nothing was applied.",
             );
-          throw new AiRequestError(
-            502,
-            "scope",
-            error instanceof Error && !(error instanceof z.ZodError)
-              ? error.message
-              : "The generated design did not pass validation. Nothing was applied.",
-          );
-        }
-        if (Buffer.byteLength(JSON.stringify(document), "utf8") > 500_000)
-          throw new AiRequestError(
-            502,
-            "size",
-            "The generated design exceeds the 500 KB UTF-8 save limit. Use a smaller image or request a smaller change. Nothing was applied.",
-          );
-        return Response.json(AiGenerationResponseSchema.parse({ document }), { headers });
+          return Response.json(AiGenerationResponseSchema.parse({ document }), { headers });
+        };
+        return await heartbeat(
+          generation().catch((error: unknown) => failure(error)),
+          headers,
+          services.heartbeatMs ?? AI_HEARTBEAT_MS,
+        );
       }
       let connections: unknown;
       if (action.action === "list") connections = await services.store.list(owner);
@@ -210,19 +290,7 @@ export function createAiGateway(services: AiGatewayServices) {
       }
       return Response.json(AiConnectionsResponseSchema.parse({ connections }), { headers });
     } catch (error) {
-      const safe =
-        error instanceof AiRequestError
-          ? error
-          : new AiRequestError(
-              500,
-              "storage",
-              "The AI service could not complete this request. Check its Firebase deployment. Your design is unchanged.",
-            );
-      services.reportError(safe.code);
-      return Response.json(
-        { error: safe.message, code: safe.code },
-        { status: safe.status, headers },
-      );
+      return failure(error);
     }
   };
 }

@@ -30,6 +30,19 @@ class TestResponse extends EventEmitter {
     this.writableEnded = true;
     return this;
   }
+  chunks: string[] = [];
+  flushed = false;
+  flushHeaders() {
+    this.flushed = true;
+  }
+  write(chunk: Uint8Array) {
+    this.chunks.push(Buffer.from(chunk).toString("utf8"));
+    return true;
+  }
+  end() {
+    this.body = this.chunks.join("");
+    this.writableEnded = true;
+  }
 }
 
 type Handler = (request: TestRequest, response: TestResponse) => Promise<void>;
@@ -201,6 +214,35 @@ describe("Deployed Firebase HTTP adapter", () => {
     )(request, response);
     expect(response.bytes).toEqual(bytes);
     expect(response.headers.get("content-type")).toBe("image/png");
+  });
+
+  it("streams heartbeat responses chunk by chunk in the production Firebase HTTP adapter", async () => {
+    const response = new TestResponse();
+    const request = Object.assign(new EventEmitter(), {
+      method: "POST",
+      path: "/",
+      headers: {},
+      rawBody: Buffer.from("{}"),
+    });
+    const encoder = new TextEncoder();
+    await createFirebaseHttpHandler(
+      async () =>
+        new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue(encoder.encode(" "));
+              controller.enqueue(encoder.encode(" "));
+              controller.enqueue(encoder.encode('{"ok":true}'));
+              controller.close();
+            },
+          }),
+          { headers: { "Content-Type": "application/json", "X-Accel-Buffering": "no" } },
+        ),
+    )(request, response);
+    expect(response.flushed).toBe(true);
+    expect(response.chunks).toEqual([" ", " ", '{"ok":true}']);
+    expect(JSON.parse(response.body)).toEqual({ ok: true });
+    expect(response.writableEnded).toBe(true);
   });
 
   it("propagates a disconnected AI response into the gateway abort signal and disposes listeners", async () => {

@@ -15,7 +15,9 @@ State: Shipped. Current connection/storage behavior is defined by
   change the shared size when asked (rejected if unselected pages cannot use it).
 - The system prompt tells models to return exactly the requested page count and
   to apply requested dimensions (preset IDs or 64?4096 px custom sizes).
-  Generation allows 420 s (function timeout 480 s) and 32,000 output tokens;
+  Generation allows 420 s (function timeout 480 s) and the connection's output
+  token limit (`max_output_tokens`, 1,000?128,000, default 32,000, set in the AI
+  connection dialog and saved via the `tokens` action);
   timeouts return JSON 504 and truncated output explains the output limit.
 - Bound prompt, context, responses, time, and account request rates. Custom
   endpoints require exact operator-approved HTTPS destinations, without

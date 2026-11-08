@@ -65,6 +65,15 @@ export async function selectAiModel(id: string, model: string, signal?: AbortSig
   return (await call({ action: "model", id, model }, AiConnectionsResponseSchema, signal))
     .connections;
 }
+export async function setAiOutputTokens(
+  id: string,
+  maxOutputTokens: number | null,
+  signal?: AbortSignal,
+) {
+  return (
+    await call({ action: "tokens", id, maxOutputTokens }, AiConnectionsResponseSchema, signal)
+  ).connections;
+}
 export async function deleteAiConnection(id: string, signal?: AbortSignal) {
   return (await call({ action: "delete", id }, AiConnectionsResponseSchema, signal)).connections;
 }

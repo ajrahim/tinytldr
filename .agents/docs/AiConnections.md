@@ -33,6 +33,11 @@ but they may add requested pages and change the shared dimensions. Ask for "5
 pages" or "make it 1200?800" (or a preset such as story) in either scope.
 Generation may take several minutes for multi-page designs.
 
+The AI connection dialog has an **Output token limit** (1,000?128,000; blank
+means 32,000). It is saved on the account's connection, survives key
+replacement, and is sent as the provider's max output tokens. Keep it within
+the selected model's own output limit; reasoning tokens count toward it.
+
 Text attachments remain transient context. Signed-in image attachments are also
 saved as private My Library uploads. When asked to place an attached image as a
 logo or photo, the model references that image; the gateway inserts the original

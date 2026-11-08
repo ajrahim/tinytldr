@@ -1,5 +1,9 @@
 import { useEffect, useId, useRef, useState } from "react";
 import {
+  AI_DEFAULT_OUTPUT_TOKENS,
+  AI_MAX_OUTPUT_TOKENS,
+  AI_MIN_OUTPUT_TOKENS,
+  AiOutputTokensSchema,
   AI_PROVIDER_BASE_URLS,
   AI_PROVIDER_NAMES,
   AiProviderConnectionInputSchema,
@@ -14,6 +18,7 @@ import {
   connectAiProvider,
   refreshAiModels,
   selectAiModel,
+  setAiOutputTokens,
 } from "../lib/AiRepository.js";
 import { Dialog } from "./Dialog.js";
 import { DropdownSelect } from "./DropdownSelect.js";
@@ -31,6 +36,11 @@ export function FirebaseAiConnectionDialog(props: {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const connection = props.providers.connections[0];
+  const savedTokens = connection?.max_output_tokens ?? null;
+  const [tokens, setTokens] = useState(savedTokens === null ? "" : String(savedTokens));
+  useEffect(() => setTokens(savedTokens === null ? "" : String(savedTokens)), [savedTokens]);
+  const tokenValue = tokens.trim() === "" ? null : Number(tokens);
+  const tokensValid = tokenValue === null || AiOutputTokensSchema.safeParse(tokenValue).success;
   const showForm = (!connection || replacing) && !AI_BACKEND_UNAVAILABLE_MESSAGE;
   const blocked = busy || props.providers.loading;
 
@@ -155,6 +165,43 @@ export function FirebaseAiConnectionDialog(props: {
               ]}
             />
           </label>
+          <form
+            className="provider-tokens"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!tokensValid || tokenValue === savedTokens) return;
+              void run((signal) => setAiOutputTokens(connection.id, tokenValue, signal));
+            }}
+          >
+            <label>
+              Output token limit
+              <span className="provider-tokens-row">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={AI_MIN_OUTPUT_TOKENS}
+                  max={AI_MAX_OUTPUT_TOKENS}
+                  step={1000}
+                  placeholder={`${AI_DEFAULT_OUTPUT_TOKENS.toLocaleString("en-US")} (default)`}
+                  value={tokens}
+                  disabled={blocked}
+                  aria-invalid={!tokensValid}
+                  onChange={(event) => setTokens(event.target.value)}
+                />
+                <button
+                  type="submit"
+                  disabled={blocked || !tokensValid || tokenValue === savedTokens}
+                >
+                  Save limit
+                </button>
+              </span>
+            </label>
+            <span className={tokensValid ? "muted" : "notice-error"}>
+              {tokensValid
+                ? `Maximum tokens per generation, including reasoning. Raise it for long multi-page designs; it must not exceed your model's own output limit. Leave blank for ${AI_DEFAULT_OUTPUT_TOKENS.toLocaleString("en-US")}.`
+                : `Enter a whole number from ${AI_MIN_OUTPUT_TOKENS.toLocaleString("en-US")} to ${AI_MAX_OUTPUT_TOKENS.toLocaleString("en-US")}, or leave it blank.`}
+            </span>
+          </form>
           <div className="provider-row-actions">
             <button
               type="button"

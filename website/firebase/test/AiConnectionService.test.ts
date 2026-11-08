@@ -107,6 +107,29 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
       );
     });
 
+    it("saves, applies, preserves and clears the output token limit", async () => {
+      const first = await saved(owner);
+      expect(first.max_output_tokens).toBeUndefined();
+      expect((await service.secret(owner, first.id))?.max_output_tokens).toBeUndefined();
+      const [limited] = await service.setOutputTokens(owner, first.id, 64_000);
+      expect(limited!.max_output_tokens).toBe(64_000);
+      expect(await service.secret(owner, first.id)).toMatchObject({
+        max_output_tokens: 64_000,
+        api_key: key,
+      });
+      await service.connect(
+        owner,
+        { ...input, id: first.id, apiKey: `${key}-next` },
+        input.baseUrl,
+        models,
+      );
+      expect((await service.list(owner))[0]!.max_output_tokens).toBe(64_000);
+      await expect(service.setOutputTokens(owner, first.id, 500)).rejects.toThrow();
+      await expect(service.setOutputTokens(other, first.id, 64_000)).rejects.toThrow("unavailable");
+      const [cleared] = await service.setOutputTokens(owner, first.id, null);
+      expect("max_output_tokens" in cleared!).toBe(false);
+    });
+
     it("replaces keys while preserving an available same-provider model and isolating owners", async () => {
       const first = await saved(owner);
       const replacement = `${key}-replacement`;

@@ -24,14 +24,17 @@ describe.skipIf(!hasFirebaseEmulators)("Floating AI composer", () => {
   let site: Awaited<ReturnType<typeof startWorkspaceTestServer>>;
   let mode: "normal" | "deferred" | "error" | "invalid-template" | "image" = "normal";
   let release: (() => void) | undefined;
+  let providerTokens: number | undefined;
   const key = "test-private-provider-token-4101";
   beforeAll(async () => {
     site = await startWorkspaceTestServer({
       aiProviderFetch: async (_url, init) => {
         if (init?.method === "GET") return Response.json({ data: [{ id: "gpt-test" }] });
         const body = JSON.parse(String(init?.body)) as {
+          max_completion_tokens?: number;
           messages: { content: string | { type: string; text?: string }[] }[];
         };
+        providerTokens = body.max_completion_tokens;
         const user = body.messages[1]!.content;
         const text =
           typeof user === "string" ? user : user.find((part) => part.type === "text")!.text!;
@@ -456,6 +459,66 @@ describe.skipIf(!hasFirebaseEmulators)("Floating AI composer", () => {
       await context.close();
     }
   });
+
+  it("saves an output token limit in the connection and sends it with generations", async () => {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    const page = await context.newPage();
+    try {
+      await open(page);
+      await connect(page);
+      await chooseDropdown(page.getByRole("combobox", { name: "Model", exact: true }), "manage");
+      const dialog = page.getByRole("dialog", { name: "AI connection", exact: true });
+      const limit = dialog.getByLabel("Output token limit");
+      expect(await limit.inputValue()).toBe("");
+      expect(await limit.getAttribute("placeholder")).toBe("32,000 (default)");
+      const save = dialog.getByRole("button", { name: "Save limit" });
+      expect(await save.isDisabled()).toBe(true);
+      await limit.fill("500");
+      expect(await save.isDisabled()).toBe(true);
+      expect(await dialog.innerText()).toContain("Enter a whole number from 1,000 to 128,000");
+      await limit.fill("64000");
+      await save.click();
+      await expect.poll(() => save.isDisabled(), { timeout: 10_000 }).toBe(true);
+      await dialog.getByRole("button", { name: "Close AI connection" }).click();
+      await page.reload();
+      await page
+        .getByRole("dialog", { name: "Welcome to tinytldr." })
+        .getByRole("button", { name: "Start Creating" })
+        .click()
+        .catch(() => undefined);
+      await expect
+        .poll(() => page.getByRole("combobox", { name: "Model", exact: true }).isEnabled(), {
+          timeout: 10_000,
+        })
+        .toBe(true);
+      await chooseDropdown(page.getByRole("combobox", { name: "Model", exact: true }), "manage");
+      await expect
+        .poll(
+          () =>
+            page
+              .getByRole("dialog", { name: "AI connection", exact: true })
+              .getByLabel("Output token limit")
+              .inputValue(),
+          { timeout: 10_000 },
+        )
+        .toBe("64000");
+      await page
+        .getByRole("dialog", { name: "AI connection", exact: true })
+        .getByRole("button", { name: "Close AI connection" })
+        .click();
+      providerTokens = undefined;
+      await page.getByLabel("Describe your idea").fill("Make it bolder.");
+      await page.getByRole("button", { name: "Generate design" }).click();
+      await expect
+        .poll(() => page.getByRole("button", { name: "Undo generation" }).isVisible(), {
+          timeout: 10_000,
+        })
+        .toBe(true);
+      expect(providerTokens).toBe(64_000);
+    } finally {
+      await context.close();
+    }
+  }, 60_000);
 
   it("saves a masked connection, generates all pages, undoes safely, and targets duplicate names with real text/image context", async () => {
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });

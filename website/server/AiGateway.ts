@@ -48,6 +48,7 @@ export interface AiConnectionStore {
     revision: string,
   ): Promise<AiConnection[]>;
   selectModel(owner: string, id: string, model: string): Promise<AiConnection[]>;
+  setOutputTokens(owner: string, id: string, tokens: number | null): Promise<AiConnection[]>;
 }
 
 export interface AiGatewayServices {
@@ -198,6 +199,12 @@ export function createAiGateway(services: AiGatewayServices) {
       }
       let connections: unknown;
       if (action.action === "list") connections = await services.store.list(owner);
+      else if (action.action === "tokens")
+        connections = await services.store.setOutputTokens(
+          owner,
+          action.id,
+          action.maxOutputTokens,
+        );
       else {
         connections = await services.store.delete(owner, action.id);
       }

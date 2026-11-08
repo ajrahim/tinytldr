@@ -52,6 +52,35 @@
 .provider-row-actions button:hover {
   color: var(--ui-link);
 }
+.provider-tokens {
+  margin: 16px 0;
+}
+.provider-tokens label {
+  margin: 0;
+}
+.provider-tokens-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.provider-tokens-row input {
+  flex: 1;
+  min-width: 0;
+}
+.provider-tokens-row button {
+  flex: none;
+  font-size: 11px;
+}
+.provider-tokens-row button:not(:disabled):hover {
+  color: var(--ui-link);
+}
+.provider-tokens > span {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.6;
+}
 .provider-connection {
   border-bottom: 1px solid var(--ui-border);
   margin: 20px 0;

@@ -4,6 +4,7 @@ import {
   AiGenerationInputSchema,
   AI_PROVIDER_BASE_URLS,
   mergeAiGeneration,
+  AI_DEFAULT_OUTPUT_TOKENS,
   SIZE_PRESET_IDS,
   projectFromDocument,
   type AiProvider,
@@ -18,12 +19,7 @@ import {
   type AiGatewayServices,
   type AiConnectionStore,
 } from "../server/AiGateway.js";
-import {
-  AI_MAX_OUTPUT_TOKENS,
-  callAiProvider,
-  providerBaseUrl,
-  readAiJson,
-} from "../server/AiProviders.js";
+import { callAiProvider, providerBaseUrl, readAiJson } from "../server/AiProviders.js";
 import { AiImageAssets } from "../server/AiImageAssets.js";
 
 const id = "688b680f-7713-415c-8396-cbe636f1d41e";
@@ -193,8 +189,8 @@ describe("AI schemas and provider protocol", () => {
             return Response.json(truncated);
           },
         }),
-      ).rejects.toThrow(/output limit/);
-      expect(body).toContain(String(AI_MAX_OUTPUT_TOKENS));
+      ).rejects.toThrow(/output token limit/);
+      expect(body).toContain(String(AI_DEFAULT_OUTPUT_TOKENS));
       expect(body).toContain("return exactly N pages");
       expect(body).toContain('{\\"width\\":W,\\"height\\":H}');
     },
@@ -383,7 +379,7 @@ describe("AI schemas and provider protocol", () => {
         fetch: async () =>
           Response.json({ choices: [{ finish_reason: "length", message: { content: "{}" } }] }),
       }),
-    ).rejects.toThrow("output limit");
+    ).rejects.toThrow("output token limit");
     await expect(
       callAiProvider({
         ...options,
@@ -456,6 +452,10 @@ describe("Authenticated AI gateway", () => {
         }),
         updateModels: async () => [metadata],
         selectModel: async () => [metadata],
+        setOutputTokens: async (_owner, _id, tokens) => {
+          calls.push(`tokens:${tokens}`);
+          return [{ ...metadata, ...(tokens ? { max_output_tokens: tokens } : {}) }];
+        },
         delete: async () => [],
         ...store,
       },
@@ -477,6 +477,39 @@ describe("Authenticated AI gateway", () => {
       );
     return { send, calls, logs };
   }
+  it("saves a validated output token limit and applies it to provider requests", async () => {
+    const test = fixture();
+    const saved = await test.send({ action: "tokens", id, maxOutputTokens: 96_000 });
+    expect(saved.status).toBe(200);
+    expect((await saved.json()).connections[0].max_output_tokens).toBe(96_000);
+    expect((await test.send({ action: "tokens", id, maxOutputTokens: null })).status).toBe(200);
+    for (const invalid of [999, 128_001, 1.5, "32000"])
+      expect((await test.send({ action: "tokens", id, maxOutputTokens: invalid })).status).toBe(
+        400,
+      );
+    expect(test.calls.filter((call) => call.startsWith("tokens:"))).toEqual([
+      "tokens:96000",
+      "tokens:null",
+    ]);
+    let body = "";
+    await callAiProvider({
+      secret: {
+        provider: "anthropic",
+        base_url: AI_PROVIDER_BASE_URLS.anthropic,
+        model: "test",
+        api_key: secret,
+        max_output_tokens: 96_000,
+      },
+      allowedCustomUrls: [],
+      request: makeRequest(),
+      signal: new AbortController().signal,
+      fetch: async (_url, init) => {
+        body = String(init?.body);
+        return Response.json(providerResponse("anthropic", JSON.stringify(makeRequest().document)));
+      },
+    });
+    expect(JSON.parse(body).max_tokens).toBe(96_000);
+  });
   it("checks account and origin before any secret lookup", async () => {
     const test = fixture();
     expect(

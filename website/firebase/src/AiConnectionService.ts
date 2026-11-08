@@ -5,6 +5,7 @@ import {
   AiConnectionSchema,
   AiProviderConnectionInputSchema,
   AiModelsSchema,
+  AiOutputTokensSchema,
   AI_PROVIDER_NAMES,
   type AiConnection,
   type AiProviderConnectionInput,
@@ -124,6 +125,9 @@ export class AiConnectionService implements AiConnectionStore {
       provider: connection.metadata.provider,
       base_url: connection.metadata.base_url,
       model: connection.metadata.model,
+      ...(connection.metadata.max_output_tokens
+        ? { max_output_tokens: connection.metadata.max_output_tokens }
+        : {}),
       api_key: this.decrypt(owner, connection),
     });
   }
@@ -196,6 +200,9 @@ export class AiConnectionService implements AiConnectionStore {
         model_name: selected?.name ?? null,
         models: catalog,
         key_suffix: checked.apiKey.slice(-4),
+        ...(existing?.metadata.max_output_tokens
+          ? { max_output_tokens: existing.metadata.max_output_tokens }
+          : {}),
         is_default: true,
         updated_at: new Date(this.now()).toISOString(),
       });
@@ -256,6 +263,15 @@ export class AiConnectionService implements AiConnectionStore {
           "Choose a model from the provider's model list. Refresh models if needed.",
         );
       this.updateSelection(owner, connection, selected);
+    });
+  }
+
+  async setOutputTokens(owner: string, id: string, tokens: number | null) {
+    const checked = AiOutputTokensSchema.nullable().parse(tokens);
+    return this.update(owner, id, (connection) => {
+      if (checked === null) delete connection.metadata.max_output_tokens;
+      else connection.metadata.max_output_tokens = checked;
+      connection.metadata.updated_at = new Date(this.now()).toISOString();
     });
   }
 

@@ -1,6 +1,8 @@
 import { z } from "zod";
 import {
+  AI_DEFAULT_OUTPUT_TOKENS,
   AI_PROVIDER_BASE_URLS,
+  AiOutputTokensSchema,
   AiProviderSchema,
   WorkspaceProjectSchema,
   AiContextSchema,
@@ -28,6 +30,7 @@ export const ProviderCredentialsSchema = z.object({
 export type ProviderCredentials = z.infer<typeof ProviderCredentialsSchema>;
 export const ProviderSecretSchema = ProviderCredentialsSchema.extend({
   model: z.string().min(1).max(120),
+  max_output_tokens: AiOutputTokensSchema.optional(),
 });
 export type ProviderSecret = z.infer<typeof ProviderSecretSchema>;
 
@@ -120,8 +123,6 @@ function openAiImages(context: readonly AiContext[]) {
     }));
 }
 
-export const AI_MAX_OUTPUT_TOKENS = 32_000;
-
 export async function fetchAiProvider(
   fetcher: typeof fetch,
   endpoint: string,
@@ -187,7 +188,7 @@ export async function callAiProvider(options: {
         imageAssets: imageAssets.references,
       })
     : "Reply with OK.";
-  const maxTokens = request ? AI_MAX_OUTPUT_TOKENS : 32;
+  const maxTokens = request ? (secret.max_output_tokens ?? AI_DEFAULT_OUTPUT_TOKENS) : 32;
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   let endpoint: string;
   let body: unknown;
@@ -300,7 +301,7 @@ export async function callAiProvider(options: {
     throw new AiRequestError(
       502,
       "provider_output",
-      "The design was longer than the model's output limit. Ask for fewer pages or a simpler change. Nothing was applied.",
+      "The design was longer than the output token limit. Raise the limit in AI settings, or ask for fewer pages or a simpler change. Nothing was applied.",
     );
   let output: string;
   if (secret.provider === "anthropic") {

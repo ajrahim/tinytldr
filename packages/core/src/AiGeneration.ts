@@ -10,6 +10,14 @@ export const AI_MAX_CONTEXT_ITEMS = 4;
 export const AI_MAX_IMAGE_BYTES = 2_000_000;
 export const AI_MAX_TOTAL_IMAGE_BYTES = 4_000_000;
 export const AI_MAX_TEXT_CHARACTERS = 64_000;
+export const AI_DEFAULT_OUTPUT_TOKENS = 32_000;
+export const AI_MIN_OUTPUT_TOKENS = 1_000;
+export const AI_MAX_OUTPUT_TOKENS = 128_000;
+export const AiOutputTokensSchema = z
+  .number()
+  .int()
+  .min(AI_MIN_OUTPUT_TOKENS)
+  .max(AI_MAX_OUTPUT_TOKENS);
 export const AiProviderSchema = z.enum(["openai", "anthropic", "gemini", "custom"]);
 export type AiProvider = z.infer<typeof AiProviderSchema>;
 export const AI_PROVIDER_NAMES: Record<AiProvider, string> = {
@@ -41,6 +49,7 @@ export const AiConnectionSchema = z.object({
   model_name: z.string().min(1).max(200).nullable(),
   models: AiModelsSchema,
   key_suffix: z.string().min(1).max(4),
+  max_output_tokens: AiOutputTokensSchema.optional(),
   is_default: z.boolean(),
   updated_at: z.string().datetime({ offset: true }),
 });
@@ -144,6 +153,13 @@ export const AiGatewayRequestSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("connect"), connection: AiProviderConnectionInputSchema }).strict(),
   z.object({ action: z.literal("models"), id: z.string().uuid() }).strict(),
   z.object({ action: z.literal("model"), id: z.string().uuid(), model: modelId }).strict(),
+  z
+    .object({
+      action: z.literal("tokens"),
+      id: z.string().uuid(),
+      maxOutputTokens: AiOutputTokensSchema.nullable(),
+    })
+    .strict(),
 ]);
 export type AiGatewayRequest = z.infer<typeof AiGatewayRequestSchema>;
 export const AiConnectionsResponseSchema = z

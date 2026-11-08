@@ -77,6 +77,7 @@ export class DesignService {
       request.action === "folders" ||
       request.action === "createFolder" ||
       request.action === "renameFolder" ||
+      request.action === "colorFolder" ||
       request.action === "deleteFolder" ||
       request.action === "moveToFolder"
     ) {
@@ -227,7 +228,15 @@ export class DesignService {
   private async folderAction(
     request: Extract<
       FirebaseDesignRequest,
-      { action: "folders" | "createFolder" | "renameFolder" | "deleteFolder" | "moveToFolder" }
+      {
+        action:
+          | "folders"
+          | "createFolder"
+          | "renameFolder"
+          | "colorFolder"
+          | "deleteFolder"
+          | "moveToFolder";
+      }
     >,
     userId: string,
   ): Promise<unknown> {
@@ -310,7 +319,16 @@ export class DesignService {
         transaction.delete(ref);
         return { id: existing.id, deleted: true };
       }
-      const renamed = { ...existing, name: request.name, updated_at: new Date().toISOString() };
+      const updated_at = new Date().toISOString();
+      if (request.action === "colorFolder") {
+        const { color: _previous, ...rest } = existing;
+        const colored: StoredFolder = request.color
+          ? { ...rest, color: request.color, updated_at }
+          : { ...rest, updated_at };
+        transaction.set(ref, colored);
+        return publicFolder(colored);
+      }
+      const renamed = { ...existing, name: request.name, updated_at };
       transaction.set(ref, renamed);
       return publicFolder(renamed);
     });

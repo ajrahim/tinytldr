@@ -32,6 +32,11 @@
 .dropdown-context-menu .dropdown-item {
   padding: 6px 9px;
 }
+.dropdown-separator {
+  height: 1px;
+  margin: 4px 2px;
+  background: var(--ui-border);
+}
 .dropdown-popover[role="dialog"] {
   width: min(360px, calc(100vw - 16px));
   padding: 0;

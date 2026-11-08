@@ -13,6 +13,7 @@ import {
   DesignVersionPageSchema,
   FirebaseDesignDeletionSchema,
   DesignFolderSchema,
+  FirebaseDesignRequestSchema,
   type FirebaseDesignRequest,
 } from "@tinytldr/core";
 import { DesignService } from "../src/DesignService.js";
@@ -517,6 +518,24 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
         await run({ action: "renameFolder", folderId: work, name: "Clients" }),
       );
       expect(renamed.name).toBe("Clients");
+      const colored = DesignFolderSchema.parse(
+        await run({ action: "colorFolder", folderId: work, color: "blue" }),
+      );
+      expect(colored).toMatchObject({ name: "Clients", color: "blue", design_ids: [second] });
+      await expect(
+        run({ action: "colorFolder", folderId: work, color: "red" }, otherId),
+      ).rejects.toMatchObject({ status: 403 });
+      const renamedColored = DesignFolderSchema.parse(
+        await run({ action: "renameFolder", folderId: work, name: "Clients" }),
+      );
+      expect(renamedColored.color).toBe("blue");
+      const cleared = DesignFolderSchema.parse(
+        await run({ action: "colorFolder", folderId: work, color: null }),
+      );
+      expect("color" in cleared).toBe(false);
+      expect(() =>
+        FirebaseDesignRequestSchema.parse({ action: "colorFolder", folderId: work, color: "#fff" }),
+      ).toThrow();
 
       const saved = SavedWorkspaceDesignSchema.parse(await run({ action: "get", id: second }));
       // Filing never creates a revision.

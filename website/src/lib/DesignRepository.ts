@@ -5,6 +5,7 @@ import {
   WorkspaceProjectSchema,
   FirebaseDesignDeletionSchema,
   DesignFolderSchema,
+  type DesignFolderColor,
   type WorkspaceProject,
 } from "@tinytldr/core";
 import { callFirebaseDesign } from "./FirebaseClient.js";
@@ -100,6 +101,10 @@ export async function createDesignFolder(name: string) {
 
 export async function renameDesignFolder(folderId: string, name: string) {
   return callFirebaseDesign({ action: "renameFolder", folderId, name }, DesignFolderSchema);
+}
+
+export async function colorDesignFolder(folderId: string, color: DesignFolderColor | null) {
+  return callFirebaseDesign({ action: "colorFolder", folderId, color }, DesignFolderSchema);
 }
 
 export async function deleteDesignFolder(folderId: string) {

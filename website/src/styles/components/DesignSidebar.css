@@ -172,9 +172,7 @@
     background-color 120ms ease;
 }
 .design-list + .design-list {
-  border-top: 1px solid var(--ui-border);
-  margin-top: 8px;
-  padding-top: 8px;
+  margin-top: 6px;
 }
 .design-list.is-drop-target {
   outline-color: var(--ui-link);
@@ -214,6 +212,9 @@
   font: inherit;
   text-align: left;
 }
+.design-group-items {
+  padding-inline-start: 10px;
+}
 .design-group-items[hidden] {
   display: none;
 }
@@ -237,15 +238,58 @@
   font-weight: 500;
   color: var(--ui-text-secondary);
 }
-/* Folder menus sit before the count so every count stays flush with the sidebar edge. */
-.design-section-heading .design-row-menu {
+/* Folder headings own a right-click/long-press menu instead of the text selection callout. */
+.folder-group .design-section-heading {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+.design-group[class*="folder-color-"] .design-group-toggle svg + svg {
+  color: var(--folder-color);
+  fill: color-mix(in srgb, var(--folder-color) 25%, transparent);
+}
+.folder-color-red {
+  --folder-color: #e5484d;
+}
+.folder-color-orange {
+  --folder-color: #f76b15;
+}
+.folder-color-yellow {
+  --folder-color: #e2a336;
+}
+.folder-color-green {
+  --folder-color: #30a46c;
+}
+.folder-color-teal {
+  --folder-color: #12a594;
+}
+.folder-color-blue {
+  --folder-color: #3e63dd;
+}
+.folder-color-purple {
+  --folder-color: #8e4ec6;
+}
+.folder-color-pink {
+  --folder-color: #d6409f;
+}
+.folder-context-menu .folder-color-trigger svg {
   margin-left: auto;
 }
-.design-section-heading .design-row-menu + .design-section-count {
-  margin-left: 2px;
+.folder-context-menu .is-danger {
+  color: #bc3636;
 }
-.design-section-heading .design-row-actions {
-  height: 24px;
+html.dark .folder-context-menu .is-danger {
+  color: #f5a4a4;
+}
+.folder-color-swatch {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 50%;
+  background: var(--folder-color, transparent);
+}
+.folder-color-swatch[class*="folder-color-"] {
+  border-color: transparent;
 }
 .design-section-count {
   margin-left: auto;

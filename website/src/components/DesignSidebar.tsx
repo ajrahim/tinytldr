@@ -13,10 +13,19 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { useId, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
+import {
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import {
   DESIGN_FOLDER_LIMIT,
   DesignFolderNameSchema,
+  type DesignFolder,
   type SavedWorkspaceDesign,
 } from "@tinytldr/core";
 import type { DesignHistory } from "../hooks/useDesignHistory.js";
@@ -26,6 +35,7 @@ import { Dropdown } from "./Dropdown.js";
 import { GitHubBadge } from "./GitHubBadge.js";
 import { ThemeToggle } from "./ThemeToggle.js";
 import type { FolderAction } from "./FolderActionDialog.js";
+import { FolderContextMenu, type ContextMenuPoint } from "./FolderContextMenu.js";
 import type { DesignListMutation, DesignListTarget } from "../lib/DesignRepository.js";
 
 const DESIGN_DRAG_TYPE = "application/x-tinytldr-design";
@@ -92,6 +102,12 @@ export function DesignSidebar({
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [dropKey, setDropKey] = useState<string | null>(null);
+  const [folderMenu, setFolderMenu] = useState<{
+    folderId: string;
+    point: ContextMenuPoint;
+  } | null>(null);
+  const menuFolder =
+    folderMenu && folders.folders.find((folder) => folder.id === folderMenu.folderId);
   const needle = query.trim().toLocaleLowerCase();
   const searching = needle.length > 0;
   const matches = (design: { document: { title: string } }) =>
@@ -233,7 +249,7 @@ export function DesignSidebar({
             drop={dropProps("all", null)}
           >
             {visibleOwned.length === 0 && (
-              <p className="empty-list">{searching ? "No matches" : "No designs yet"}</p>
+              <p className="empty-list">{searching ? "No matches" : "Empty Folder"}</p>
             )}
             {visibleOwned.map((design) => accountRow(design))}
           </DesignGroup>
@@ -254,40 +270,14 @@ export function DesignSidebar({
                 expanded={searching || isExpanded(folder.id)}
                 onToggle={() => toggle(folder.id)}
                 drop={dropProps(folder.id, folder.id)}
-                menu={
-                  <Dropdown
-                    label={`Actions for folder ${folder.name}`}
-                    popoverLabel={`Actions for folder ${folder.name}`}
-                    align="end"
-                    variant="context"
-                    className="design-row-menu"
-                    triggerProps={{ className: "design-row-actions", disabled: folders.busy }}
-                    trigger={<Ellipsis size={16} aria-hidden="true" />}
-                  >
-                    {(close) =>
-                      (["rename", "delete"] as const).map((kind) => (
-                        <button
-                          key={kind}
-                          type="button"
-                          role="menuitem"
-                          className="dropdown-item"
-                          tabIndex={-1}
-                          onClick={() => {
-                            close();
-                            folders.clearError();
-                            onFolderAction({ kind, folder });
-                          }}
-                        >
-                          {kind === "rename" ? "Rename" : "Delete"}
-                        </button>
-                      ))
-                    }
-                  </Dropdown>
+                color={folder.color}
+                onContextMenu={
+                  folders.busy
+                    ? undefined
+                    : (point) => setFolderMenu({ folderId: folder.id, point })
                 }
               >
-                {designs.length === 0 && (
-                  <p className="empty-list">Drag designs here or use Move to folder.</p>
-                )}
+                {designs.length === 0 && <p className="empty-list">Empty Folder</p>}
                 {visible.map((design) => accountRow(design))}
               </DesignGroup>
             );
@@ -300,7 +290,7 @@ export function DesignSidebar({
           onToggle={() => toggle("local")}
         >
           {visibleLocal.length === 0 && (
-            <p className="empty-list">{searching ? "No matches" : "No designs yet"}</p>
+            <p className="empty-list">{searching ? "No matches" : "Empty Folder"}</p>
           )}
           {visibleLocal.map((design) => (
             <DesignRow
@@ -321,6 +311,27 @@ export function DesignSidebar({
           ))}
         </DesignGroup>
       </nav>
+      {folderMenu && menuFolder && (
+        <FolderContextMenu
+          key={`${folderMenu.folderId}:${folderMenu.point.x}:${folderMenu.point.y}`}
+          folderName={menuFolder.name}
+          color={menuFolder.color}
+          point={folderMenu.point}
+          onClose={() => setFolderMenu(null)}
+          onRename={() => {
+            folders.clearError();
+            onFolderAction({ kind: "rename", folder: menuFolder });
+          }}
+          onColor={(color) => {
+            folders.clearError();
+            void folders.recolor(menuFolder.id, color);
+          }}
+          onDelete={() => {
+            folders.clearError();
+            onFolderAction({ kind: "delete", folder: menuFolder });
+          }}
+        />
+      )}
       <div className="sidebar-bottom">
         <button type="button" className="sidebar-mcp-card" onClick={onMcp}>
           <span>Connect an Agent</span>
@@ -385,7 +396,8 @@ function DesignGroup({
   expanded,
   onToggle,
   drop,
-  menu,
+  color,
+  onContextMenu,
   children,
 }: {
   title: string;
@@ -394,20 +406,76 @@ function DesignGroup({
   expanded: boolean;
   onToggle: () => void;
   drop?: DropProps;
-  menu?: ReactNode;
+  color?: DesignFolder["color"];
+  onContextMenu?: (point: ContextMenuPoint) => void;
   children: ReactNode;
 }) {
   const headingId = useId();
   const listId = useId();
+  const longPress = useRef<{ timer: number; x: number; y: number; ready: boolean } | null>(null);
+  const suppressClick = useRef(false);
+  const cancelLongPress = () => {
+    if (longPress.current) window.clearTimeout(longPress.current.timer);
+    longPress.current = null;
+  };
+  const openMenu = (event: MouseEvent<HTMLElement>) => {
+    if (!onContextMenu) return;
+    event.preventDefault();
+    cancelLongPress();
+    // Keyboard-invoked context menus report 0,0; anchor those under the heading instead.
+    if (event.clientX === 0 && event.clientY === 0) {
+      const bounds = event.currentTarget.getBoundingClientRect();
+      onContextMenu({ x: bounds.left + 16, y: bounds.bottom });
+    } else onContextMenu({ x: event.clientX, y: event.clientY });
+  };
   return (
     <section
-      className={`design-list design-group${drop?.active ? " is-drop-target" : ""}`}
+      className={`design-list design-group${drop?.active ? " is-drop-target" : ""}${onContextMenu ? " folder-group" : ""}${color ? ` folder-color-${color}` : ""}`}
       aria-labelledby={headingId}
       onDragOver={drop?.onDragOver}
       onDragLeave={drop?.onDragLeave}
       onDrop={drop?.onDrop}
     >
-      <div className="design-section-heading">
+      <div
+        className="design-section-heading"
+        onContextMenu={onContextMenu ? openMenu : undefined}
+        onPointerDown={
+          onContextMenu
+            ? (event) => {
+                // iOS Safari never fires contextmenu, so a touch long-press arms the menu,
+                // which opens on release so the lifted finger cannot light-dismiss it.
+                if (event.pointerType !== "touch") return;
+                cancelLongPress();
+                const { clientX: x, clientY: y } = event;
+                const press = { x, y, ready: false, timer: 0 };
+                press.timer = window.setTimeout(() => {
+                  press.ready = true;
+                }, 500);
+                longPress.current = press;
+              }
+            : undefined
+        }
+        onPointerMove={(event) => {
+          const press = longPress.current;
+          if (press && Math.hypot(event.clientX - press.x, event.clientY - press.y) > 8)
+            cancelLongPress();
+        }}
+        onPointerUp={() => {
+          const press = longPress.current;
+          cancelLongPress();
+          if (!press?.ready || !onContextMenu) return;
+          suppressClick.current = true;
+          window.setTimeout(() => (suppressClick.current = false), 400);
+          onContextMenu({ x: press.x, y: press.y });
+        }}
+        onClickCapture={(event) => {
+          if (!suppressClick.current) return;
+          suppressClick.current = false;
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+        onPointerCancel={cancelLongPress}
+      >
         <button
           type="button"
           className="design-group-toggle"
@@ -424,7 +492,6 @@ function DesignGroup({
             {title}
           </button>
         </h3>
-        {menu}
         <span
           className="design-section-count"
           aria-label={`${count} ${count === 1 ? "design" : "designs"}`}

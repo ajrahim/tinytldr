@@ -18,8 +18,13 @@ Restructure the Designs sidebar and stop saving untouched windows:
 - Account rows can be dragged onto a folder (move) or onto **All** (remove from
   folders). Local rows are not draggable, and Local is not a drop target. A
   **Move to folder…** row-menu item is the keyboard and touch alternative.
-- Folders can be renamed or deleted from their row menu. Deleting a folder never
-  deletes its designs.
+- Folder headings have no 3-dots button. Right-click (or long-press on touch,
+  or the keyboard context-menu key) opens a menu: **Rename**, **Color** (a
+  submenu with Default plus red, orange, yellow, green, teal, blue, purple and
+  pink), a divider, and **Delete**. Deleting a folder never deletes its designs.
+  Design rows keep their 3-dots menu.
+- Sections have no divider lines, their contents are slightly indented, and an
+  empty All, folder or Local section reads **Empty Folder**.
 - Search filters All, the folders and Local by title. Folders with no match are
   hidden while searching.
 - Signed-out visitors see only Search and Local.
@@ -31,7 +36,8 @@ Restructure the Designs sidebar and stop saving untouched windows:
 - Shared schemas live in `packages/core/src/FirebaseDesigns.ts`:
   - `DesignFolderSchema`, with a name of 1–60 characters, up to 500 design IDs, and
     at most 100 folders per account;
-  - the actions `folders`, `createFolder`, `renameFolder`, `deleteFolder` and
+  - the actions `folders`, `createFolder`, `renameFolder`, `colorFolder`
+    (`color: null` clears it), `deleteFolder` and
     `moveToFolder` (where `folderId: null` means All only).
 - The trusted `DesignService` stores the `design_folders/{id}` documents with an
   `owner_id`. Client Firestore rules still deny direct access.

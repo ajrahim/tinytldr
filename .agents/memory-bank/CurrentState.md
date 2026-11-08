@@ -2,6 +2,13 @@
 
 Source baseline: 2026-10-25.
 
+## Folder context menu: 2026-11-08
+
+- Folder headings open a right-click/long-press menu (Rename, Color submenu,
+  Delete) built in `FolderContextMenu.tsx`; colors persist through the
+  `colorFolder` designs action. Section dividers are gone, contents indent, and
+  empty sections read "Empty Folder".
+
 ## No focus outlines: 2026-11-08
 
 - At the owner's request, `global.css` removes all focus outlines (`:focus`,

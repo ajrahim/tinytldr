@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import type { DesignFolder } from "@tinytldr/core";
+import type { DesignFolder, DesignFolderColor } from "@tinytldr/core";
 import {
+  colorDesignFolder,
   createDesignFolder,
   deleteDesignFolder,
   listDesignFolders,
@@ -15,6 +16,7 @@ export interface DesignFolders {
   clearError: () => void;
   create: (name: string) => Promise<boolean>;
   rename: (folderId: string, name: string) => Promise<boolean>;
+  recolor: (folderId: string, color: DesignFolderColor | null) => Promise<boolean>;
   remove: (folderId: string) => Promise<boolean>;
   move: (designId: string, folderId: string | null) => Promise<boolean>;
 }
@@ -83,6 +85,14 @@ export function useDesignFolders(userId: string | undefined, version: number): D
       }),
     [run],
   );
+  const recolor = useCallback(
+    (folderId: string, color: DesignFolderColor | null) =>
+      run("Folder color could not be changed", async () => {
+        const folder = await colorDesignFolder(folderId, color);
+        setFolders((current) => current.map((item) => (item.id === folder.id ? folder : item)));
+      }),
+    [run],
+  );
   const remove = useCallback(
     (folderId: string) =>
       run("Folder could not be deleted", async () => {
@@ -106,6 +116,7 @@ export function useDesignFolders(userId: string | undefined, version: number): D
     clearError: useCallback(() => setError(null), []),
     create,
     rename,
+    recolor,
     remove,
     move,
   };

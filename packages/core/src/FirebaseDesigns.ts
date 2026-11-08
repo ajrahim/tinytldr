@@ -22,11 +22,25 @@ export const FirebaseDesignDeletionSchema = z.object({ id, deleted: z.literal(tr
 export const DESIGN_FOLDER_LIMIT = 100;
 export const DESIGN_FOLDER_SIZE_LIMIT = 500;
 export const DesignFolderNameSchema = z.string().trim().min(1).max(60);
+export const DESIGN_FOLDER_COLORS = [
+  "red",
+  "orange",
+  "yellow",
+  "green",
+  "teal",
+  "blue",
+  "purple",
+  "pink",
+] as const;
+export const DesignFolderColorSchema = z.enum(DESIGN_FOLDER_COLORS);
+export type DesignFolderColor = z.infer<typeof DesignFolderColorSchema>;
 /** Account folder: an ordered name plus design IDs. Membership never changes the designs. */
 export const DesignFolderSchema = z
   .object({
     id,
     name: DesignFolderNameSchema,
+    /** Absent means the default, uncolored folder. */
+    color: DesignFolderColorSchema.optional(),
     design_ids: id.array().max(DESIGN_FOLDER_SIZE_LIMIT),
     created_at: z.string().datetime({ offset: true }),
     updated_at: z.string().datetime({ offset: true }),
@@ -81,6 +95,14 @@ export const FirebaseDesignRequestSchema = z.discriminatedUnion("action", [
     .strict(),
   z
     .object({ action: z.literal("renameFolder"), folderId: id, name: DesignFolderNameSchema })
+    .strict(),
+  z
+    .object({
+      action: z.literal("colorFolder"),
+      folderId: id,
+      /** Null restores the default color. */
+      color: DesignFolderColorSchema.nullable(),
+    })
     .strict(),
   z.object({ action: z.literal("deleteFolder"), folderId: id }).strict(),
   z

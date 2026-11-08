@@ -120,13 +120,13 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
       const local = sidebar.getByRole("region", { name: "Local", exact: true });
       await account.waitFor();
       expect(await local.locator(".design-section-count").textContent()).toBe("0");
-      expect(await local.locator(".empty-list").textContent()).toBe("No designs yet");
+      expect(await local.locator(".empty-list").textContent()).toBe("Empty Folder");
       expect(await page.evaluate((key) => localStorage.getItem(key), DESIGN_HISTORY_KEY)).toBe(
         null,
       );
       await page.getByLabel("Design title", { exact: true }).fill("First edit");
       expect(await account.locator(".design-section-count").textContent()).toBe("0");
-      expect(await account.locator(".empty-list").textContent()).toBe("No designs yet");
+      expect(await account.locator(".empty-list").textContent()).toBe("Empty Folder");
       expect((await account.locator(".empty-list").boundingBox())!.height).toBeLessThanOrEqual(20);
       expect(
         await sidebar.getByText("Your claimed designs will live here.", { exact: true }).count(),

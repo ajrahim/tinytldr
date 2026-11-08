@@ -4,6 +4,7 @@ import {
   SavedDesignVersionSchema,
   WorkspaceProjectSchema,
   FirebaseDesignDeletionSchema,
+  DesignFolderSchema,
   type WorkspaceProject,
 } from "@tinytldr/core";
 import { callFirebaseDesign } from "./FirebaseClient.js";
@@ -82,4 +83,29 @@ export async function listDesignVersions(id: string, editKey: string | null, bef
 
 export async function getDesignVersion(id: string, revision: number, editKey: string | null) {
   return callFirebaseDesign({ action: "version", id, revision, editKey }, SavedDesignVersionSchema);
+}
+
+const DesignFolderListSchema = DesignFolderSchema.array();
+
+export async function listDesignFolders() {
+  return callFirebaseDesign({ action: "folders" }, DesignFolderListSchema);
+}
+
+export async function createDesignFolder(name: string) {
+  return callFirebaseDesign(
+    { action: "createFolder", folderId: crypto.randomUUID(), name },
+    DesignFolderSchema,
+  );
+}
+
+export async function renameDesignFolder(folderId: string, name: string) {
+  return callFirebaseDesign({ action: "renameFolder", folderId, name }, DesignFolderSchema);
+}
+
+export async function deleteDesignFolder(folderId: string) {
+  return callFirebaseDesign({ action: "deleteFolder", folderId }, FirebaseDesignDeletionSchema);
+}
+
+export async function moveDesignToFolder(id: string, folderId: string | null) {
+  return callFirebaseDesign({ action: "moveToFolder", id, folderId }, DesignFolderListSchema);
 }

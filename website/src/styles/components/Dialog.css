@@ -124,7 +124,8 @@
 .dialog-secondary-button:hover {
   background: var(--ui-surface-subtle);
 }
-.app-dialog input {
+.app-dialog input,
+.app-dialog select {
   display: block;
   min-width: 0;
   width: 100%;

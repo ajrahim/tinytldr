@@ -2,6 +2,10 @@
 
 Status: Shipped
 
+> Partly superseded by [Sidebar folders, search and Local](./SidebarFolders.md):
+> "This browser" is now **Local**, and the sidebar adds search, collapsible groups
+> and account folders.
+
 ## Approved scope
 
 Improve the Designs sidebar's section hierarchy, not its data behavior.

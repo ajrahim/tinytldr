@@ -108,7 +108,7 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
     }
   });
 
-  it("sections account and browser designs compactly, with accessible hover and keyboard help in both themes", async () => {
+  it("sections All and Local designs compactly, keeps fresh windows out of Local until edited, with accessible help in both themes", async () => {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const page = await context.newPage();
     try {
@@ -116,16 +116,22 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
       await waitForCanvas(page);
       await site.signIn(page);
       const sidebar = page.getByRole("complementary", { name: "Your designs" });
-      const account = sidebar.getByRole("region", { name: "Account", exact: true });
-      const local = sidebar.getByRole("region", { name: "This browser", exact: true });
+      const account = sidebar.getByRole("region", { name: "All", exact: true });
+      const local = sidebar.getByRole("region", { name: "Local", exact: true });
       await account.waitFor();
+      expect(await local.locator(".design-section-count").textContent()).toBe("0");
+      expect(await local.locator(".empty-list").textContent()).toBe("No designs yet");
+      expect(await page.evaluate((key) => localStorage.getItem(key), DESIGN_HISTORY_KEY)).toBe(
+        null,
+      );
+      await page.getByLabel("Design title", { exact: true }).fill("First edit");
       expect(await account.locator(".design-section-count").textContent()).toBe("0");
       expect(await account.locator(".empty-list").textContent()).toBe("No designs yet");
       expect((await account.locator(".empty-list").boundingBox())!.height).toBeLessThanOrEqual(20);
       expect(
         await sidebar.getByText("Your claimed designs will live here.", { exact: true }).count(),
       ).toBe(0);
-      expect(await local.locator(".design-section-count").textContent()).toBe("1");
+      await expect.poll(() => local.locator(".design-section-count").textContent()).toBe("1");
       expect(await local.locator(".design-list-item.is-current").count()).toBe(1);
       expect(
         await local
@@ -137,14 +143,14 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
           })),
       ).toEqual({ top: "9px", bottom: "9px" });
       const accountHelp = account.getByRole("button", { name: "About account designs" });
-      const browserHelp = local.getByRole("button", { name: "About browser designs" });
+      const browserHelp = local.getByRole("button", { name: "About local designs" });
       const tooltip = page.getByRole("tooltip");
       const before = (await downloadSource(page, "Download design JSON")).text;
       for (const theme of ["Day", "Night"] as const) {
         await chooseSiteTheme(page, theme);
         await accountHelp.hover();
         await tooltip.waitFor();
-        expect(await tooltip.textContent()).toContain("Designs you own");
+        expect(await tooltip.textContent()).toContain("Every design saved to your account");
         expect(await accountHelp.getAttribute("aria-describedby")).toBe(
           await tooltip.getAttribute("id"),
         );
@@ -178,8 +184,15 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
         await page.keyboard.press("Escape");
         await expect.poll(() => tooltip.isVisible()).toBe(false);
         await accountHelp.press("Tab");
+        await expect.poll(() => tooltip.isVisible()).toBe(false);
+        expect(
+          await local
+            .getByRole("button", { name: "Collapse Local section" })
+            .evaluate((element) => element === document.activeElement),
+        ).toBe(true);
+        await page.keyboard.press("Tab");
         await tooltip.waitFor();
-        expect(await tooltip.textContent()).toContain("unsaved drafts kept in this browser");
+        expect(await tooltip.textContent()).toContain("drafts kept only in this browser");
         expect(await browserHelp.evaluate((element) => element === document.activeElement)).toBe(
           true,
         );
@@ -208,8 +221,9 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
         await page.getByRole("button", { name: "Open sidebar", exact: true }).tap();
         const drawer = page.getByRole("dialog", { name: "Your designs menu" });
         const sidebar = drawer.getByRole("complementary", { name: "Your designs" });
-        expect(await sidebar.getByRole("region", { name: "Account", exact: true }).count()).toBe(0);
-        const help = sidebar.getByRole("button", { name: "About browser designs" });
+        expect(await sidebar.getByRole("region", { name: "All", exact: true }).count()).toBe(0);
+        expect(await sidebar.getByRole("button", { name: "Create Folder" }).count()).toBe(0);
+        const help = sidebar.getByRole("button", { name: "About local designs" });
         await help.tap();
         await tooltip.waitFor();
         const box = (await tooltip.boundingBox())!;
@@ -233,7 +247,7 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
         expect(await drawer.isVisible()).toBe(true);
         await help.tap();
         await tooltip.waitFor();
-        await drawer.getByRole("heading", { name: "Designs", exact: true }).tap();
+        await drawer.getByRole("searchbox", { name: "Search designs" }).tap();
         await expect.poll(() => tooltip.isVisible()).toBe(false);
         await help.tap();
         await tooltip.waitFor();
@@ -542,6 +556,10 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
     const page = await context.newPage();
     await page.goto(site.baseUrl);
     await waitForCanvas(page);
+    await page.getByLabel("Design title", { exact: true }).fill("Seed draft");
+    await expect
+      .poll(() => page.evaluate((key) => localStorage.getItem(key), DESIGN_HISTORY_KEY))
+      .not.toBe(null);
     const entry = await page.evaluate((key) => {
       const entry = JSON.parse(localStorage.getItem(key) ?? "[]")[0];
       entry.pageJson = { [entry.document.pages[0].id]: "{ unfinished JSON" };
@@ -915,7 +933,9 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
     await page.getByLabel("Design title", { exact: true }).fill("Keep this draft");
     const card = page.getByRole("button", { name: "Connect an Agent" });
     const bounds = await card.boundingBox();
-    const guestHeading = await page.getByRole("heading", { name: "This browser" }).boundingBox();
+    const guestHeading = await page
+      .getByRole("heading", { name: "Local", exact: true })
+      .boundingBox();
     expect(bounds).not.toBeNull();
     expect(bounds!.y).toBeGreaterThan(guestHeading!.y);
     const account = await page

@@ -39,7 +39,11 @@ describe.skipIf(!hasFirebaseEmulators)("New cloud designs", () => {
       await page.getByLabel("Design title", { exact: true }).fill("Guest source");
       await expect.poll(async () => (await drafts(page))[0]?.document.title).toBe("Guest source");
       await page.getByRole("button", { name: "New design", exact: true }).click();
-      await expect.poll(async () => (await drafts(page)).length).toBe(2);
+      await expect
+        .poll(() => page.getByLabel("Design title", { exact: true }).inputValue())
+        .not.toBe("Guest source");
+      // The untouched new window is not saved to Local.
+      expect((await drafts(page)).length).toBe(1);
       expect(page.url()).toBe(`${site.baseUrl}/`);
       expect(await page.getByRole("button", { name: "Claim", exact: true }).count()).toBe(1);
       const owner = await site.signIn(page);
@@ -52,7 +56,7 @@ describe.skipIf(!hasFirebaseEmulators)("New cloud designs", () => {
       const saved = await site.design(id);
       expect(saved).toMatchObject({ owner_id: owner.uid, revision: 1 });
       expect(await page.getByRole("button", { name: "Claim", exact: true }).count()).toBe(0);
-      const account = page.getByRole("region", { name: "Account", exact: true });
+      const account = page.getByRole("region", { name: "All", exact: true });
       await expect.poll(() => account.locator(".design-list-item").count()).toBe(1);
       expect((await drafts(page)).map((entry) => entry.id)).toEqual(localIds);
       await page.getByLabel("Design title", { exact: true }).fill("Cloud design");
@@ -153,6 +157,8 @@ describe.skipIf(!hasFirebaseEmulators)("New cloud designs", () => {
       let release: (() => void) | undefined;
       try {
         await open(page);
+        await page.getByLabel("Design title", { exact: true }).fill("Pending source");
+        await expect.poll(async () => (await drafts(page)).length).toBe(1);
         const owner = await site.signIn(page);
         const local = (await drafts(page))[0]!;
         const blocked = new Promise<void>((resolve) => {
@@ -174,7 +180,7 @@ describe.skipIf(!hasFirebaseEmulators)("New cloud designs", () => {
         await page.getByRole("button", { name: "New design", exact: true }).click();
         await expect.poll(() => createdId).toBeTruthy();
         if (change === "navigation") {
-          await page.getByRole("button", { name: "Untitled design", exact: true }).click();
+          await page.getByRole("button", { name: "Pending source", exact: true }).click();
           await page.waitForURL(`${site.baseUrl}/local/${local.id}`);
         } else {
           await site.signIn(page);
@@ -187,7 +193,7 @@ describe.skipIf(!hasFirebaseEmulators)("New cloud designs", () => {
           .toBe(true);
         expect(page.url()).toBe(destination);
         expect((await site.design(createdId!)).owner_id).toBe(owner.uid);
-        const account = page.getByRole("region", { name: "Account", exact: true });
+        const account = page.getByRole("region", { name: "All", exact: true });
         await expect
           .poll(() => account.locator(".design-list-item").count())
           .toBe(change === "navigation" ? 1 : 0);

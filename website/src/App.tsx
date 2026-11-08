@@ -20,6 +20,7 @@ import {
 import { useAccount } from "./hooks/useAccount.js";
 import { useAiConnections } from "./hooks/useAiConnections.js";
 import { useDesignHistory } from "./hooks/useDesignHistory.js";
+import { useDesignFolders } from "./hooks/useDesignFolders.js";
 import { listAccountDesigns } from "./lib/DesignRepository.js";
 import type { SavedWorkspaceDesign } from "@tinytldr/core";
 
@@ -135,6 +136,7 @@ export function App() {
   );
 
   const refreshLibrary = useCallback(() => setLibraryVersion((value) => value + 1), []);
+  const folders = useDesignFolders(workspace ? account.user?.id : undefined, libraryVersion);
   const openAccount = useCallback(() => setShowAccount(true), []);
 
   useEffect(() => {
@@ -199,6 +201,7 @@ export function App() {
               sidebarCollapsed={sidebarCollapsed}
               onToggleDesktopSidebar={() => setSidebarCollapsed((collapsed) => !collapsed)}
               ownedDesigns={ownedDesigns}
+              folders={folders}
               onNavigate={navigateTo}
               onSignIn={openAccount}
               onPersisted={refreshLibrary}

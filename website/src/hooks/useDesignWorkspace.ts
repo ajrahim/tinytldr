@@ -120,6 +120,10 @@ export function useDesignWorkspace(options: {
   const [sourceSession, setSourceSession] = useState(0);
   const [conflictingDraft, setConflictingDraft] = useState<LocalDesign | null>(null);
   const busyRef = useRef(false);
+  // A fresh window stays out of Local until its first edit or save.
+  const pristine = useRef<{ project: WorkspaceProject; pageJson: Record<string, string> } | null>(
+    null,
+  );
   const ownerSession = useRef({ userId: options.userId });
   if (ownerSession.current.userId !== options.userId)
     ownerSession.current = { userId: options.userId };
@@ -192,9 +196,11 @@ export function useDesignWorkspace(options: {
           setIdentity({ id: local.id, editKey: local.editKey });
         }
         if (!active) return;
+        const nextPageJson = restorePageJson(next, recovery);
+        pristine.current = designId || localId ? null : { project: next, pageJson: nextPageJson };
         setProject(next);
         setSelectedPageId(next.pages[0]!.id);
-        setPageJson(restorePageJson(next, recovery));
+        setPageJson(nextPageJson);
         setLoading(false);
       } catch (err) {
         if (active) {
@@ -311,6 +317,17 @@ export function useDesignWorkspace(options: {
   const { remember, forget } = history;
   useEffect(() => {
     if (loading || loadError || deleted || !identity.editKey || record?.owner_id) return;
+    const baseline = pristine.current;
+    if (baseline) {
+      if (
+        !record &&
+        !entriesRef.current.some((entry) => entry.id === identity.id) &&
+        sameJsonContent(baseline.project, project) &&
+        sameJsonContent(baseline.pageJson, pageJson)
+      )
+        return;
+      pristine.current = null;
+    }
     try {
       remember({
         ...identity,

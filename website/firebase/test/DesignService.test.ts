@@ -12,6 +12,8 @@ import {
   SavedDesignVersionSchema,
   DesignVersionPageSchema,
   FirebaseDesignDeletionSchema,
+  DesignFolderSchema,
+  type FirebaseDesignRequest,
 } from "@tinytldr/core";
 import { DesignService } from "../src/DesignService.js";
 import { createDesignGateway } from "../src/DesignGateway.js";
@@ -458,6 +460,82 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
           })
         ).status,
       ).toBe(403);
+    });
+
+    it("keeps account folders private, idempotent, ordered, and free of deleted designs", async () => {
+      const folderList = DesignFolderSchema.array();
+      const run = (request: FirebaseDesignRequest, user: string | null = ownerId) =>
+        service.execute(request, user);
+      const createOwned = async () => {
+        const designId = randomUUID();
+        await run({ action: "save", id: designId, document: original, editKey: KEY });
+        return designId;
+      };
+      const first = await createOwned();
+      const second = await createOwned();
+      const work = randomUUID();
+      const archive = randomUUID();
+      await expect(run({ action: "folders" }, null)).rejects.toMatchObject({ status: 401 });
+      const created = DesignFolderSchema.parse(
+        await run({ action: "createFolder", folderId: work, name: "  Work  " }),
+      );
+      expect(created).toMatchObject({ id: work, name: "Work", design_ids: [] });
+      // Retrying the same client-generated folder ID does not duplicate it.
+      expect(await run({ action: "createFolder", folderId: work, name: "Changed" })).toMatchObject({
+        name: "Work",
+      });
+      await run({ action: "createFolder", folderId: archive, name: "archive" });
+      await expect(
+        run({ action: "renameFolder", folderId: work, name: "Mine" }, otherId),
+      ).rejects.toMatchObject({ status: 403 });
+      expect(await run({ action: "folders" }, otherId)).toEqual([]);
+
+      await run({ action: "moveToFolder", id: first, folderId: work });
+      await run({ action: "moveToFolder", id: second, folderId: work });
+      let folders = folderList.parse(
+        await run({ action: "moveToFolder", id: first, folderId: archive }),
+      );
+      expect(folders.map((folder) => [folder.name, folder.design_ids])).toEqual([
+        ["archive", [first]],
+        ["Work", [second]],
+      ]);
+      await expect(
+        run({ action: "moveToFolder", id: first, folderId: randomUUID() }),
+      ).rejects.toMatchObject({ status: 404 });
+      await expect(
+        run({ action: "moveToFolder", id: first, folderId: work }, otherId),
+      ).rejects.toMatchObject({ status: 403 });
+      // A guest design cannot be filed until it is claimed.
+      await create();
+      await expect(run({ action: "moveToFolder", id, folderId: work })).rejects.toMatchObject({
+        status: 403,
+      });
+
+      folders = folderList.parse(await run({ action: "moveToFolder", id: first, folderId: null }));
+      expect(folders.find((folder) => folder.id === archive)!.design_ids).toEqual([]);
+      const renamed = DesignFolderSchema.parse(
+        await run({ action: "renameFolder", folderId: work, name: "Clients" }),
+      );
+      expect(renamed.name).toBe("Clients");
+
+      const saved = SavedWorkspaceDesignSchema.parse(await run({ action: "get", id: second }));
+      // Filing never creates a revision.
+      expect(saved.revision).toBe(1);
+      await run({ action: "delete", id: second, editKey: null, revision: 1 });
+      folders = folderList.parse(await run({ action: "folders" }));
+      expect(folders.find((folder) => folder.id === work)!.design_ids).toEqual([]);
+
+      expect(await run({ action: "deleteFolder", folderId: work })).toEqual({
+        id: work,
+        deleted: true,
+      });
+      await expect(run({ action: "deleteFolder", folderId: work })).rejects.toMatchObject({
+        status: 404,
+      });
+      expect(
+        SavedWorkspaceDesignSchema.parse(await run({ action: "get", id: first })).revision,
+      ).toBe(1);
+      await run({ action: "deleteFolder", folderId: archive });
     });
   },
 );

@@ -2,6 +2,16 @@
 
 Source baseline: 2026-10-25.
 
+## Sidebar folders, search and Local: 2026-11-08
+
+- The Designs sidebar now has search, Create Folder, an All section (every account
+  design), account-synced custom folders (Firestore `design_folders`, one folder per
+  design, with drag and drop or "Move to folder…") and a fixed Local section (formerly
+  "This browser"). A fresh window's untouched design is not saved to Local until its
+  first edit. See [Sidebar folders](../specs/SidebarFolders.md).
+- The full emulator `pnpm check` passed 46/46 files and 388/388 tests, and the
+  license check passed (304 permissive transitive dependencies).
+
 ## Claude Code and Codex plugins: 2026-11-07
 
 - `plugin/claude` and `plugin/codex` package the `tinytldr` skill with the hosted

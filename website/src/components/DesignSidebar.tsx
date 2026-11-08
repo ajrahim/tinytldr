@@ -1,17 +1,54 @@
-import { Ellipsis, Grid2X2, Info, Plus, Sparkles, UserRound, X } from "lucide-react";
-import { useId } from "react";
-import type { SavedWorkspaceDesign } from "@tinytldr/core";
+import {
+  ChevronRight,
+  Ellipsis,
+  Folder,
+  FolderOpen,
+  FolderPlus,
+  Grid2X2,
+  HardDrive,
+  Info,
+  Plus,
+  Search,
+  Sparkles,
+  UserRound,
+  X,
+} from "lucide-react";
+import { useId, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
+import {
+  DESIGN_FOLDER_LIMIT,
+  DesignFolderNameSchema,
+  type SavedWorkspaceDesign,
+} from "@tinytldr/core";
 import type { DesignHistory } from "../hooks/useDesignHistory.js";
+import type { DesignFolders } from "../hooks/useDesignFolders.js";
 import type { SiteThemeMode, ThemeOrigin } from "../hooks/useThemeMode.js";
 import { InfoTooltip } from "./InfoTooltip.js";
 import { Dropdown } from "./Dropdown.js";
 import { GitHubBadge } from "./GitHubBadge.js";
 import { ThemeToggle } from "./ThemeToggle.js";
+import type { FolderAction } from "./FolderActionDialog.js";
 import type { DesignListMutation, DesignListTarget } from "../lib/DesignRepository.js";
+
+const DESIGN_DRAG_TYPE = "application/x-tinytldr-design";
+const MENU_LABELS = {
+  claim: "Claim",
+  rename: "Rename",
+  move: "Move to folder\u2026",
+  delete: "Delete",
+} as const;
+
+interface DropProps {
+  active: boolean;
+  onDragOver: (event: DragEvent<HTMLElement>) => void;
+  onDragLeave: (event: DragEvent<HTMLElement>) => void;
+  onDrop: (event: DragEvent<HTMLElement>) => void;
+}
 
 export interface DesignSidebarProps {
   history: DesignHistory;
   ownedDesigns: readonly SavedWorkspaceDesign[];
+  folders: DesignFolders;
+  onFolderAction: (action: FolderAction) => void;
   activeId?: string;
   signedIn: boolean;
   onNewDesign: () => void;
@@ -33,6 +70,8 @@ export interface DesignSidebarProps {
 export function DesignSidebar({
   history,
   ownedDesigns,
+  folders,
+  onFolderAction,
   activeId,
   signedIn,
   onNewDesign,
@@ -50,8 +89,78 @@ export function DesignSidebar({
   busy,
   onDesignAction,
 }: DesignSidebarProps) {
-  const accountHeading = useId();
-  const browserHeading = useId();
+  const [query, setQuery] = useState("");
+  const [creatingFolder, setCreatingFolder] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [dropKey, setDropKey] = useState<string | null>(null);
+  const needle = query.trim().toLocaleLowerCase();
+  const searching = needle.length > 0;
+  const matches = (design: { document: { title: string } }) =>
+    !searching || (design.document.title || "Untitled design").toLocaleLowerCase().includes(needle);
+  const ownedById = useMemo(
+    () => new Map(ownedDesigns.map((design) => [design.id, design])),
+    [ownedDesigns],
+  );
+  const folderOf = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const folder of folders.folders)
+      for (const designId of folder.design_ids) map.set(designId, folder.id);
+    return map;
+  }, [folders.folders]);
+  const visibleOwned = ownedDesigns.filter(matches);
+  const visibleLocal = history.entries.filter(matches);
+  // All and Local start open; custom folders start closed so All stays reachable.
+  const isExpanded = (key: string) => expanded[key] ?? (key === "all" || key === "local");
+  const toggle = (key: string) =>
+    setExpanded((current) => ({ ...current, [key]: !isExpanded(key) }));
+  const canDrag = signedIn && !busy && !folders.busy;
+  const dropProps = (key: string, folderId: string | null): DropProps => ({
+    active: dropKey === key,
+    onDragOver: (event) => {
+      if (!canDrag || !event.dataTransfer.types.includes(DESIGN_DRAG_TYPE)) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      setDropKey(key);
+    },
+    onDragLeave: (event) => {
+      if (!event.currentTarget.contains(event.relatedTarget as Node | null))
+        setDropKey((current) => (current === key ? null : current));
+    },
+    onDrop: (event) => {
+      const designId = event.dataTransfer.getData(DESIGN_DRAG_TYPE);
+      setDropKey(null);
+      if (!canDrag || !designId) return;
+      event.preventDefault();
+      if ((folderOf.get(designId) ?? null) === folderId) return;
+      folders.clearError();
+      void folders.move(designId, folderId);
+    },
+  });
+  const accountRow = (design: SavedWorkspaceDesign) => {
+    const target: DesignListTarget = {
+      id: design.id,
+      title: design.document.title,
+      saved: true,
+      revision: design.revision,
+      editKey: null,
+    };
+    return (
+      <DesignRow
+        key={design.id}
+        target={target}
+        current={activeId === design.id}
+        unclaimed={false}
+        busy={busy}
+        onNavigate={onNavigate}
+        onAction={onDesignAction}
+        draggable={canDrag}
+        onMove={() => {
+          folders.clearError();
+          onFolderAction({ kind: "move", target, folderId: folderOf.get(design.id) ?? null });
+        }}
+      />
+    );
+  };
   return (
     <aside id="design-sidebar" className="design-sidebar" aria-label="Your designs" hidden={hidden}>
       <div className="sidebar-brand">
@@ -77,45 +186,128 @@ export function DesignSidebar({
       </button>
       <nav aria-label="Saved designs">
         <h2 className="sidebar-list-heading">Designs</h2>
-        {signedIn && (
-          <section className="design-list" aria-labelledby={accountHeading}>
-            <DesignSectionHeading
-              id={accountHeading}
-              title="Account"
-              count={ownedDesigns.length}
-              helpLabel="About account designs"
-              description="Designs you own, including those you've claimed. Available whenever you sign in."
-            />
-            {ownedDesigns.length === 0 && <p className="empty-list">No designs yet</p>}
-            {ownedDesigns.map((design) => (
-              <DesignRow
-                key={design.id}
-                target={{
-                  id: design.id,
-                  title: design.document.title,
-                  saved: true,
-                  revision: design.revision,
-                  editKey: null,
-                }}
-                current={activeId === design.id}
-                unclaimed={false}
-                busy={busy}
-                onNavigate={onNavigate}
-                onAction={onDesignAction}
-              />
-            ))}
-          </section>
-        )}
-        <section className="design-list" aria-labelledby={browserHeading}>
-          <DesignSectionHeading
-            id={browserHeading}
-            title="This browser"
-            count={history.entries.length}
-            helpLabel="About browser designs"
-            description="Unclaimed designs and unsaved drafts kept in this browser. Claim a design to add it to your account."
+        <label className="design-search">
+          <Search size={14} aria-hidden="true" />
+          <input
+            type="search"
+            aria-label="Search designs"
+            placeholder="Search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            maxLength={120}
           />
-          {history.entries.length === 0 && <p className="empty-list">No designs yet</p>}
-          {history.entries.map((design) => (
+        </label>
+        {signedIn &&
+          (creatingFolder ? (
+            <CreateFolderForm
+              busy={folders.busy}
+              onCancel={() => setCreatingFolder(false)}
+              onCreate={async (name) => {
+                if (await folders.create(name)) setCreatingFolder(false);
+              }}
+            />
+          ) : (
+            <button
+              type="button"
+              className="create-folder-button"
+              onClick={() => {
+                folders.clearError();
+                setCreatingFolder(true);
+              }}
+              disabled={folders.busy || folders.folders.length >= DESIGN_FOLDER_LIMIT}
+            >
+              <FolderPlus size={14} aria-hidden="true" /> Create Folder
+            </button>
+          ))}
+        {signedIn && folders.error && (
+          <p role="alert" className="design-folder-error notice-error">
+            {folders.error}
+          </p>
+        )}
+        {signedIn && (
+          <DesignGroup
+            title="All"
+            icon={<FolderOpen size={14} aria-hidden="true" />}
+            count={ownedDesigns.length}
+            help="Every design saved to your account. Drag a design here to take it out of its folder."
+            helpLabel="About account designs"
+            expanded={searching || isExpanded("all")}
+            onToggle={() => toggle("all")}
+            drop={dropProps("all", null)}
+          >
+            {visibleOwned.length === 0 && (
+              <p className="empty-list">{searching ? "No matches" : "No designs yet"}</p>
+            )}
+            {visibleOwned.map((design) => accountRow(design))}
+          </DesignGroup>
+        )}
+        {signedIn &&
+          folders.folders.map((folder) => {
+            const designs = folder.design_ids
+              .map((designId) => ownedById.get(designId))
+              .filter((design): design is SavedWorkspaceDesign => !!design);
+            const visible = designs.filter(matches);
+            if (searching && visible.length === 0) return null;
+            return (
+              <DesignGroup
+                key={folder.id}
+                title={folder.name}
+                icon={<Folder size={14} aria-hidden="true" />}
+                count={designs.length}
+                expanded={searching || isExpanded(folder.id)}
+                onToggle={() => toggle(folder.id)}
+                drop={dropProps(folder.id, folder.id)}
+                menu={
+                  <Dropdown
+                    label={`Actions for folder ${folder.name}`}
+                    popoverLabel={`Actions for folder ${folder.name}`}
+                    align="end"
+                    variant="context"
+                    className="design-row-menu"
+                    triggerProps={{ className: "design-row-actions", disabled: folders.busy }}
+                    trigger={<Ellipsis size={16} aria-hidden="true" />}
+                  >
+                    {(close) =>
+                      (["rename", "delete"] as const).map((kind) => (
+                        <button
+                          key={kind}
+                          type="button"
+                          role="menuitem"
+                          className="dropdown-item"
+                          tabIndex={-1}
+                          onClick={() => {
+                            close();
+                            folders.clearError();
+                            onFolderAction({ kind, folder });
+                          }}
+                        >
+                          {kind === "rename" ? "Rename" : "Delete"}
+                        </button>
+                      ))
+                    }
+                  </Dropdown>
+                }
+              >
+                {designs.length === 0 && (
+                  <p className="empty-list">Drag designs here or use Move to folder.</p>
+                )}
+                {visible.map((design) => accountRow(design))}
+              </DesignGroup>
+            );
+          })}
+        <DesignGroup
+          title="Local"
+          icon={<HardDrive size={14} aria-hidden="true" />}
+          count={history.entries.length}
+          help="Unclaimed designs and drafts kept only in this browser. New windows appear here after your first edit. Claim a design to add it to your account."
+          helpLabel="About local designs"
+          expanded={searching || isExpanded("local")}
+          onToggle={() => toggle("local")}
+        >
+          {visibleLocal.length === 0 && (
+            <p className="empty-list">{searching ? "No matches" : "No designs yet"}</p>
+          )}
+          {visibleLocal.map((design) => (
             <DesignRow
               key={design.id}
               target={{
@@ -126,13 +318,13 @@ export function DesignSidebar({
                 editKey: design.editKey,
               }}
               current={activeId === design.id}
-              unclaimed={!ownedDesigns.some((owned) => owned.id === design.id)}
+              unclaimed={!ownedById.has(design.id)}
               busy={busy}
               onNavigate={onNavigate}
               onAction={onDesignAction}
             />
           ))}
-        </section>
+        </DesignGroup>
       </nav>
       <div className="sidebar-bottom">
         <button type="button" className="sidebar-mcp-card" onClick={onMcp}>
@@ -191,31 +383,122 @@ export function DesignSidebar({
   );
 }
 
-function DesignSectionHeading({
-  id,
+function DesignGroup({
   title,
+  icon,
   count,
+  help,
   helpLabel,
-  description,
+  expanded,
+  onToggle,
+  drop,
+  menu,
+  children,
 }: {
-  id: string;
   title: string;
+  icon: ReactNode;
   count: number;
-  helpLabel: string;
-  description: string;
+  help?: string;
+  helpLabel?: string;
+  expanded: boolean;
+  onToggle: () => void;
+  drop?: DropProps;
+  menu?: ReactNode;
+  children: ReactNode;
 }) {
+  const headingId = useId();
+  const listId = useId();
   return (
-    <div className="design-section-heading">
-      <InfoTooltip label={helpLabel} title={title} headingId={id}>
-        {description}
-      </InfoTooltip>
-      <span
-        className="design-section-count"
-        aria-label={`${count} ${count === 1 ? "design" : "designs"}`}
-      >
-        {count}
-      </span>
-    </div>
+    <section
+      className={`design-list design-group${drop?.active ? " is-drop-target" : ""}`}
+      aria-labelledby={headingId}
+      onDragOver={drop?.onDragOver}
+      onDragLeave={drop?.onDragLeave}
+      onDrop={drop?.onDrop}
+    >
+      <div className="design-section-heading">
+        <button
+          type="button"
+          className="design-group-toggle"
+          aria-expanded={expanded}
+          aria-controls={listId}
+          aria-label={`${expanded ? "Collapse" : "Expand"} ${title} section`}
+          onClick={onToggle}
+        >
+          <ChevronRight size={12} aria-hidden="true" />
+          {icon}
+        </button>
+        {help ? (
+          <InfoTooltip label={helpLabel ?? `About ${title}`} title={title} headingId={headingId}>
+            {help}
+          </InfoTooltip>
+        ) : (
+          <h3 id={headingId} className="design-group-title" title={title}>
+            <button type="button" onClick={onToggle} tabIndex={-1}>
+              {title}
+            </button>
+          </h3>
+        )}
+        {menu}
+        <span
+          className="design-section-count"
+          aria-label={`${count} ${count === 1 ? "design" : "designs"}`}
+        >
+          {count}
+        </span>
+      </div>
+      <div id={listId} className="design-group-items" hidden={!expanded}>
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function CreateFolderForm({
+  busy,
+  onCreate,
+  onCancel,
+}: {
+  busy: boolean;
+  onCreate: (name: string) => Promise<void>;
+  onCancel: () => void;
+}) {
+  const [name, setName] = useState("");
+  const input = useRef<HTMLInputElement>(null);
+  const valid = DesignFolderNameSchema.safeParse(name).success;
+  return (
+    <form
+      className="create-folder-form"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (valid && !busy) void onCreate(name);
+      }}
+    >
+      <FolderPlus size={14} aria-hidden="true" />
+      <input
+        ref={input}
+        aria-label="New folder name"
+        placeholder="Folder name"
+        value={name}
+        maxLength={60}
+        autoFocus
+        disabled={busy}
+        onChange={(event) => setName(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key !== "Escape") return;
+          // Keep Escape from also closing the mobile drawer.
+          event.preventDefault();
+          event.stopPropagation();
+          onCancel();
+        }}
+        onBlur={() => {
+          if (!name.trim() && !busy) onCancel();
+        }}
+      />
+      <button type="submit" disabled={!valid || busy} aria-busy={busy}>
+        Create
+      </button>
+    </form>
   );
 }
 
@@ -226,6 +509,8 @@ function DesignRow({
   busy,
   onNavigate,
   onAction,
+  draggable = false,
+  onMove,
 }: {
   target: DesignListTarget;
   current: boolean;
@@ -233,9 +518,25 @@ function DesignRow({
   busy: boolean;
   onNavigate: (path: string) => void;
   onAction: DesignSidebarProps["onDesignAction"];
+  draggable?: boolean;
+  onMove?: () => void;
 }) {
+  const [dragging, setDragging] = useState(false);
   return (
-    <div className={`design-list-row ${current ? "is-current" : ""}`}>
+    <div
+      className={`design-list-row ${current ? "is-current" : ""}${dragging ? " is-dragging" : ""}`}
+      draggable={draggable || undefined}
+      onDragStart={
+        draggable
+          ? (event) => {
+              event.dataTransfer.setData(DESIGN_DRAG_TYPE, target.id);
+              event.dataTransfer.effectAllowed = "move";
+              setDragging(true);
+            }
+          : undefined
+      }
+      onDragEnd={() => setDragging(false)}
+    >
       <button
         type="button"
         className={`design-list-item ${current ? "is-current" : ""}`}
@@ -255,8 +556,8 @@ function DesignRow({
       >
         {(close) => (
           <>
-            {(["claim", "rename", "delete"] as const)
-              .filter((action) => action !== "claim" || unclaimed)
+            {(["claim", "rename", "move", "delete"] as const)
+              .filter((action) => (action === "claim" ? unclaimed : action !== "move" || !!onMove))
               .map((action) => (
                 <button
                   key={action}
@@ -266,10 +567,11 @@ function DesignRow({
                   tabIndex={-1}
                   onClick={() => {
                     close();
-                    onAction(target, action);
+                    if (action === "move") onMove?.();
+                    else onAction(target, action);
                   }}
                 >
-                  {action === "claim" ? "Claim" : action === "rename" ? "Rename" : "Delete"}
+                  {MENU_LABELS[action]}
                 </button>
               ))}
           </>

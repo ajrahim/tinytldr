@@ -19,6 +19,23 @@ const revision = z.number().int().positive();
 export const DesignTitleSchema = WorkspaceProjectSchema.innerType().shape.title;
 export const FirebaseDesignDeletionSchema = z.object({ id, deleted: z.literal(true) }).strict();
 
+export const DESIGN_FOLDER_LIMIT = 100;
+export const DESIGN_FOLDER_SIZE_LIMIT = 500;
+export const DesignFolderNameSchema = z.string().trim().min(1).max(60);
+/** Account folder: an ordered name plus design IDs. Membership never changes the designs. */
+export const DesignFolderSchema = z
+  .object({
+    id,
+    name: DesignFolderNameSchema,
+    design_ids: id.array().max(DESIGN_FOLDER_SIZE_LIMIT),
+    created_at: z.string().datetime({ offset: true }),
+    updated_at: z.string().datetime({ offset: true }),
+  })
+  .strict();
+export type DesignFolder = z.infer<typeof DesignFolderSchema>;
+export const StoredDesignFolderSchema = DesignFolderSchema.extend({ owner_id: z.string().min(1) });
+export type StoredDesignFolder = z.infer<typeof StoredDesignFolderSchema>;
+
 export const FirebaseDesignRequestSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("get"), id }).strict(),
   z
@@ -56,6 +73,22 @@ export const FirebaseDesignRequestSchema = z.discriminatedUnion("action", [
       id,
       editKey: editKey.nullable(),
       revision,
+    })
+    .strict(),
+  z.object({ action: z.literal("folders") }).strict(),
+  z
+    .object({ action: z.literal("createFolder"), folderId: id, name: DesignFolderNameSchema })
+    .strict(),
+  z
+    .object({ action: z.literal("renameFolder"), folderId: id, name: DesignFolderNameSchema })
+    .strict(),
+  z.object({ action: z.literal("deleteFolder"), folderId: id }).strict(),
+  z
+    .object({
+      action: z.literal("moveToFolder"),
+      id,
+      /** Null removes the design from every folder, leaving it only in All. */
+      folderId: id.nullable(),
     })
     .strict(),
 ]);

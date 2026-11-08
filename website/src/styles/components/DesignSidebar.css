@@ -83,21 +83,151 @@
 }
 /* The content keeps the sidebar width; only the native scrollbar uses the outer padding. */
 .sidebar-list-heading,
+.design-search,
+.create-folder-button,
+.create-folder-form,
+.design-folder-error,
 .design-list {
   width: 100cqw;
 }
+/* The search field labels the list visually; the heading stays for assistive tech. */
 .sidebar-list-heading {
-  padding: 0 12px;
-  font-size: 12px;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.design-search,
+.create-folder-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--ui-border);
+  border-radius: 6px;
+  color: var(--ui-text-muted);
+}
+.design-search:focus-within,
+.create-folder-form:focus-within {
+  border-color: var(--ui-border-strong);
+  outline: 2px solid var(--ui-link);
+  outline-offset: 1px;
+}
+.design-search input,
+.create-folder-form input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ui-text);
+  font-size: 11px;
+}
+.design-search input::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+.create-folder-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 7px 10px;
+  border-radius: 5px;
+  font-size: 11px;
+  text-align: left;
+  color: var(--ui-text-secondary);
+}
+.create-folder-button:hover:not(:disabled) {
+  background: var(--ui-surface-subtle);
+  color: var(--ui-text);
+}
+.create-folder-form {
+  margin-top: 8px;
+  padding-inline-end: 4px;
+}
+.create-folder-form button {
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 4px;
+  font-size: 10px;
   font-weight: 600;
+  background: var(--ui-pill-bg);
+  color: var(--ui-pill-text);
+}
+.create-folder-form button:disabled {
+  opacity: 0.5;
+}
+.design-folder-error {
+  margin-top: 8px;
+  padding: 0 10px;
+  font-size: 10px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 .design-list {
   margin-top: 12px;
+  border-radius: 6px;
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+  transition:
+    outline-color 120ms ease,
+    background-color 120ms ease;
 }
 .design-list + .design-list {
   border-top: 1px solid var(--ui-border);
-  margin-top: 16px;
-  padding-top: 12px;
+  margin-top: 8px;
+  padding-top: 8px;
+}
+.design-list.is-drop-target {
+  outline-color: var(--ui-link);
+  background: var(--ui-surface-subtle);
+}
+.design-group-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  height: 24px;
+  margin-inline-start: -6px;
+  padding: 0 2px;
+  border-radius: 4px;
+  color: var(--ui-text-muted);
+}
+.design-group-toggle:hover,
+.design-group-toggle:focus-visible {
+  color: var(--ui-text);
+  background: var(--ui-surface-subtle);
+}
+.design-group-toggle svg:first-child {
+  transition: transform 120ms ease;
+}
+.design-group-toggle[aria-expanded="true"] svg:first-child {
+  transform: rotate(90deg);
+}
+.design-group-title {
+  min-width: 0;
+}
+.design-group-title button {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.design-group-items[hidden] {
+  display: none;
+}
+.design-list-row[draggable="true"] {
+  cursor: grab;
+}
+.design-list-row.is-dragging {
+  opacity: 0.5;
 }
 .design-section-heading {
   display: flex;
@@ -108,9 +238,20 @@
   min-height: 28px;
 }
 .design-section-heading h3 {
+  min-width: 0;
   font-size: 11px;
   font-weight: 500;
   color: var(--ui-text-secondary);
+}
+/* Folder menus sit before the count so every count stays flush with the sidebar edge. */
+.design-section-heading .design-row-menu {
+  margin-left: auto;
+}
+.design-section-heading .design-row-menu + .design-section-count {
+  margin-left: 2px;
+}
+.design-section-heading .design-row-actions {
+  height: 24px;
 }
 .design-section-count {
   margin-left: auto;

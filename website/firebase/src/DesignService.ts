@@ -1,14 +1,24 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import type { Firestore, DocumentSnapshot, Transaction } from "firebase-admin/firestore";
+import {
+  FieldValue,
+  type Firestore,
+  type DocumentSnapshot,
+  type Transaction,
+} from "firebase-admin/firestore";
 import { z } from "zod";
 import {
+  DESIGN_FOLDER_LIMIT,
+  DESIGN_FOLDER_SIZE_LIMIT,
   DESIGN_VERSION_PAGE_SIZE,
   DeletedDesignRecordSchema as DeletedDesignSchema,
+  DesignFolderSchema,
   FirebaseDesignRequestSchema,
   SavedDesignVersionSchema,
+  StoredDesignFolderSchema as StoredFolderSchema,
   StoredDesignRecordSchema as StoredDesignSchema,
   savedDesignFromRecord as publicDesign,
   type FirebaseDesignRequest,
+  type StoredDesignFolder as StoredFolder,
   type StoredDesignRecord as StoredDesign,
   type WorkspaceProject,
 } from "@tinytldr/core/firebase";
@@ -63,6 +73,16 @@ export class DesignService {
         .map((snapshot) => publicDesign(readDesign(snapshot)));
     }
     if (request.action === "delete") return this.deleteDesign(request, userId);
+    if (
+      request.action === "folders" ||
+      request.action === "createFolder" ||
+      request.action === "renameFolder" ||
+      request.action === "deleteFolder" ||
+      request.action === "moveToFolder"
+    ) {
+      if (!userId) throw new DesignRequestError("Sign in to organize designs in folders.", 401);
+      return this.folderAction(request, userId);
+    }
 
     const ref = this.database.collection("designs").doc(request.id);
     return this.database.runTransaction(async (transaction) => {
@@ -161,12 +181,14 @@ export class DesignService {
     userId: string | null,
   ) {
     const ref = this.database.collection("designs").doc(request.id);
+    let ownerId = null as string | null;
     await this.database.runTransaction(async (transaction) => {
       const snapshot = await transaction.get(ref);
       const deleted = DeletedDesignSchema.safeParse(snapshot.data());
       const stored = deleted.success ? deleted.data : readDesign(snapshot);
       if (!canEdit(stored, userId, request.editKey))
         throw new DesignRequestError("This action is private to the design editor.", 403);
+      ownerId = stored.owner_id;
       if (stored.revision !== request.revision)
         throw new DesignRequestError(
           "Delete refused: the design changed. Reload it before confirming deletion.",
@@ -183,7 +205,115 @@ export class DesignService {
     });
     // Keep the authorization tombstone: delayed saves must not recreate the public link.
     await this.database.recursiveDelete(ref.collection("versions"));
+    if (ownerId) await this.removeFromFolders(ownerId, request.id);
     return { id: request.id, deleted: true };
+  }
+
+  private async removeFromFolders(ownerId: string, designId: string) {
+    const folders = await this.database
+      .collection("design_folders")
+      .where("owner_id", "==", ownerId)
+      .get();
+    const now = new Date().toISOString();
+    await Promise.all(
+      folders.docs
+        .filter((doc) => (doc.get("design_ids") as unknown[] | undefined)?.includes(designId))
+        .map((doc) =>
+          doc.ref.update({ design_ids: FieldValue.arrayRemove(designId), updated_at: now }),
+        ),
+    );
+  }
+
+  private async folderAction(
+    request: Extract<
+      FirebaseDesignRequest,
+      { action: "folders" | "createFolder" | "renameFolder" | "deleteFolder" | "moveToFolder" }
+    >,
+    userId: string,
+  ): Promise<unknown> {
+    const folders = this.database.collection("design_folders");
+    const owned = folders.where("owner_id", "==", userId);
+    const publicFolder = ({ owner_id: _owner, ...folder }: StoredFolder) =>
+      DesignFolderSchema.parse(folder);
+    const sorted = (entries: StoredFolder[]) =>
+      entries
+        .map(publicFolder)
+        .sort(
+          (left, right) =>
+            left.name.localeCompare(right.name, undefined, { sensitivity: "base" }) ||
+            left.created_at.localeCompare(right.created_at),
+        );
+    if (request.action === "folders")
+      return sorted((await owned.get()).docs.map((doc) => StoredFolderSchema.parse(doc.data())));
+
+    return this.database.runTransaction(async (transaction) => {
+      const readOwned = async () =>
+        (await transaction.get(owned)).docs.map((doc) => StoredFolderSchema.parse(doc.data()));
+      if (request.action === "moveToFolder") {
+        const design = readDesign(
+          await transaction.get(this.database.collection("designs").doc(request.id)),
+        );
+        if (design.owner_id !== userId)
+          throw new DesignRequestError(
+            "Only designs in your account can be moved to folders.",
+            403,
+          );
+        const entries = await readOwned();
+        if (request.folderId && !entries.some((folder) => folder.id === request.folderId))
+          throw new DesignRequestError("This folder was not found.", 404);
+        const now = new Date().toISOString();
+        const next = entries.map((folder) => {
+          const without = folder.design_ids.filter((designId) => designId !== request.id);
+          const design_ids = folder.id === request.folderId ? [request.id, ...without] : without;
+          if (design_ids.length > DESIGN_FOLDER_SIZE_LIMIT)
+            throw new DesignRequestError(
+              `A folder can hold at most ${DESIGN_FOLDER_SIZE_LIMIT} designs.`,
+              400,
+            );
+          const changed =
+            design_ids.length !== folder.design_ids.length ||
+            design_ids.some((value, index) => value !== folder.design_ids[index]);
+          return changed ? { ...folder, design_ids, updated_at: now } : folder;
+        });
+        for (const [index, folder] of next.entries())
+          if (folder !== entries[index]) transaction.set(folders.doc(folder.id), folder);
+        return sorted(next);
+      }
+      const ref = folders.doc(request.folderId);
+      const snapshot = await transaction.get(ref);
+      const existing = snapshot.exists ? StoredFolderSchema.parse(snapshot.data()) : null;
+      if (existing && existing.owner_id !== userId)
+        throw new DesignRequestError("This folder belongs to another account.", 403);
+      if (request.action === "createFolder") {
+        // Retried creates with the same client ID return the existing folder.
+        if (existing) return publicFolder(existing);
+        const entries = await readOwned();
+        if (entries.length >= DESIGN_FOLDER_LIMIT)
+          throw new DesignRequestError(
+            `You can create at most ${DESIGN_FOLDER_LIMIT} folders.`,
+            400,
+          );
+        const now = new Date().toISOString();
+        const created: StoredFolder = {
+          id: request.folderId,
+          owner_id: userId,
+          name: request.name,
+          design_ids: [],
+          created_at: now,
+          updated_at: now,
+        };
+        transaction.set(ref, created);
+        return publicFolder(created);
+      }
+      if (!existing) throw new DesignRequestError("This folder was not found.", 404);
+      if (request.action === "deleteFolder") {
+        transaction.delete(ref);
+        return { id: existing.id, deleted: true };
+      }
+      const renamed = { ...existing, name: request.name, updated_at: new Date().toISOString() };
+      transaction.set(ref, renamed);
+      return publicFolder(renamed);
+    });
   }
 
   private encodeDocument(document: WorkspaceProject): string {

@@ -180,6 +180,16 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
       if (cacheDir) await rm(cacheDir, { recursive: true, force: true });
     });
 
+    // Fresh windows stay out of Local until edited; restore the title after a real edit.
+    async function touchDraft(page: Page) {
+      const title = page.getByLabel("Design title", { exact: true });
+      const value = await title.inputValue();
+      await title.fill(`${value} `);
+      await title.fill(value);
+      await expect
+        .poll(() => page.evaluate((key) => localStorage.getItem(key), DESIGN_HISTORY_KEY))
+        .not.toBe(null);
+    }
     async function openLogin(page: Page) {
       if (page.viewportSize()!.width <= 900)
         await page.getByRole("button", { name: "Open sidebar", exact: true }).click();
@@ -216,6 +226,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
       await getAuth(app).createUser({ uid });
       try {
         await page.goto(baseUrl);
+        await touchDraft(page);
         const token = await getAuth(app).createCustomToken(uid);
         await page.evaluate(
           `import("/test/FirebaseSessionFixture.ts").then(({ signInTestAccount }) => signInTestAccount(${JSON.stringify(token)}))`,
@@ -423,7 +434,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
               await page.keyboard.press("Tab");
               await expect.poll(() => menu.isVisible()).toBe(false);
               await trigger.click();
-              await sidebar.getByRole("heading", { name: "Designs", exact: true }).click();
+              await sidebar.getByRole("searchbox", { name: "Search designs" }).click();
               await expect.poll(() => menu.isVisible()).toBe(false);
               const bottomBefore = await sidebar.locator(".sidebar-bottom").boundingBox();
               await nav.evaluate((element) => {
@@ -535,6 +546,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
       try {
         await page.goto(baseUrl);
         await page.getByLabel("Design title", { exact: true }).waitFor();
+        await touchDraft(page);
         const claim = page.getByRole("button", { name: "Claim", exact: true });
         const save = page.getByRole("button", { name: "Save", exact: true });
         await expect.poll(() => claim.isEnabled()).toBe(true);
@@ -607,7 +619,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
         await expect.poll(() => claim.isEnabled()).toBe(true);
         await claim.click();
         await page
-          .getByRole("region", { name: "Account", exact: true })
+          .getByRole("region", { name: "All", exact: true })
           .getByRole("button", { name: "Renamed browser draft", exact: true })
           .waitFor();
         expect(await claim.count()).toBe(0);
@@ -633,7 +645,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
             JSON.parse((await downloadSource(page, "Download design JSON")).text),
           ).pageJson?.[original.pages[0]!.id],
         ).toBe("{ keep this owned raw edit");
-        const account = page.getByRole("region", { name: "Account", exact: true });
+        const account = page.getByRole("region", { name: "All", exact: true });
         await account
           .getByRole("button", { name: "Actions for Renamed saved design", exact: true })
           .click();
@@ -678,6 +690,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
       await getAuth(app).createUser({ uid });
       try {
         await page.goto(baseUrl);
+        await touchDraft(page);
         const token = await getAuth(app).createCustomToken(uid);
         await page.evaluate(
           `import("/test/FirebaseSessionFixture.ts").then(({ signInTestAccount }) => signInTestAccount(${JSON.stringify(token)}))`,
@@ -740,7 +753,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
           .click();
         await page.getByRole("menuitem", { name: "Claim", exact: true }).click();
         await page
-          .getByRole("region", { name: "Account", exact: true })
+          .getByRole("region", { name: "All", exact: true })
           .getByRole("button", { name: "Pending saved title", exact: true })
           .waitFor();
         const saved = SavedWorkspaceDesignSchema.parse(
@@ -841,6 +854,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
       });
       try {
         await page.goto(baseUrl);
+        await touchDraft(page);
         const token = await getAuth(app).createCustomToken(uid);
         await page.evaluate(
           `import("/test/FirebaseSessionFixture.ts").then(({ signInTestAccount }) => signInTestAccount(${JSON.stringify(token)}))`,
@@ -881,7 +895,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
           await route.continue();
         });
         await page
-          .getByRole("region", { name: "Account", exact: true })
+          .getByRole("region", { name: "All", exact: true })
           .getByRole("button", { name: `Actions for ${original.document.title}`, exact: true })
           .click();
         await page.getByRole("menuitem", { name: "Delete", exact: true }).click();

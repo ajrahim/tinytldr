@@ -29,6 +29,7 @@ import { WorkspaceMenu } from "../components/WorkspaceMenu.js";
 import { VersionHistoryMenu } from "../components/VersionHistoryMenu.js";
 import { DropdownSelect } from "../components/DropdownSelect.js";
 import { DesignActionDialog } from "../components/DesignActionDialog.js";
+import { FolderActionDialog, type FolderAction } from "../components/FolderActionDialog.js";
 import type { DesignListTarget, DesignListMutation } from "../lib/DesignRepository.js";
 import { useDesignWorkspace } from "../hooks/useDesignWorkspace.js";
 import { useSandboxPreview } from "../hooks/useSandboxPreview.js";
@@ -36,6 +37,7 @@ import { useExportJob } from "../hooks/useExportJob.js";
 import type { Account } from "../hooks/useAccount.js";
 import type { AiConnections } from "../hooks/useAiConnections.js";
 import type { DesignHistory } from "../hooks/useDesignHistory.js";
+import type { DesignFolders } from "../hooks/useDesignFolders.js";
 import type { SiteThemeMode, ThemeOrigin } from "../hooks/useThemeMode.js";
 import { SIZE_PRESETS, compileArtboardHtml, type SizePresetId } from "../lib/BrowserCompiler.js";
 import { LocalDesignSchema, PageJsonSchema } from "../lib/DesignHistory.js";
@@ -55,6 +57,7 @@ export interface PlaygroundPageProps {
   sidebarCollapsed: boolean;
   onToggleDesktopSidebar: () => void;
   ownedDesigns: readonly SavedWorkspaceDesign[];
+  folders: DesignFolders;
   onNavigate: (path: string) => void;
   onSignIn: () => void;
   onPersisted: () => void;
@@ -76,6 +79,7 @@ export function PlaygroundPage(props: PlaygroundPageProps) {
     action: "rename" | "delete";
     target: DesignListTarget;
   } | null>(null);
+  const [folderAction, setFolderAction] = useState<FolderAction | null>(null);
   const [seekMs, setSeekMs] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [showSafeZone, setShowSafeZone] = useState(false);
@@ -225,6 +229,8 @@ export function PlaygroundPage(props: PlaygroundPageProps) {
     <DesignSidebar
       history={props.history}
       ownedDesigns={props.ownedDesigns}
+      folders={folderAction ? { ...props.folders, error: null } : props.folders}
+      onFolderAction={(action) => closeSidebarAnd(() => setFolderAction(action))}
       signedIn={!!props.account.user}
       onNewDesign={startNewDesign}
       activeId={libraryOpen ? undefined : studio.activeId}
@@ -292,6 +298,27 @@ export function PlaygroundPage(props: PlaygroundPageProps) {
             const mutation: DesignListMutation =
               designAction.action === "rename" ? { action: "rename", title } : { action: "delete" };
             if (await studio.actOnDesign(designAction.target, mutation)) setDesignAction(null);
+          }}
+        />
+      )}
+      {folderAction && (
+        <FolderActionDialog
+          action={folderAction}
+          folders={props.folders.folders}
+          busy={props.folders.busy}
+          error={props.folders.error}
+          onClose={() => {
+            props.folders.clearError();
+            setFolderAction(null);
+          }}
+          onConfirm={async (value) => {
+            const done =
+              folderAction.kind === "move"
+                ? await props.folders.move(folderAction.target.id, value || null)
+                : folderAction.kind === "rename"
+                  ? await props.folders.rename(folderAction.folder.id, value)
+                  : await props.folders.remove(folderAction.folder.id);
+            if (done) setFolderAction(null);
           }}
         />
       )}

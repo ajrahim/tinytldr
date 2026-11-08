@@ -958,6 +958,10 @@ describe.skipIf(!hasFirebaseEmulators)("Rendered media library", () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     await openEditor(page, false);
+    await page.getByLabel("Design title", { exact: true }).fill("Seed draft");
+    await expect
+      .poll(() => page.evaluate((key) => localStorage.getItem(key), DESIGN_HISTORY_KEY))
+      .not.toBe(null);
     await page.evaluate((key) => {
       const first = JSON.parse(localStorage.getItem(key) ?? "[]")[0];
       if (!first) throw new Error("No draft to seed history");
@@ -981,11 +985,11 @@ describe.skipIf(!hasFirebaseEmulators)("Rendered media library", () => {
     );
     expect(
       await page
-        .getByRole("region", { name: "This browser", exact: true })
+        .getByRole("region", { name: "Local", exact: true })
         .locator(".design-section-count")
         .textContent(),
     ).toBe(String(historyCount));
-    await page.getByRole("button", { name: "About browser designs" }).hover();
+    await page.getByRole("button", { name: "About local designs" }).hover();
     await page.getByRole("tooltip").waitFor();
     await page.locator(".design-sidebar nav").evaluate((nav) => {
       nav.scrollTop = nav.scrollHeight;

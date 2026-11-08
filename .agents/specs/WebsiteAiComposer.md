@@ -22,8 +22,9 @@ State: Shipped. Current connection/storage behavior is defined by
 - Generations still running after 15 s commit to HTTP 200 and stream whitespace
   heartbeats until the final JSON (`{document}` or `{error, code}`), so proxies do
   not drop idle connections. Provider fetches use an undici agent without the
-  default 300 s header/body timeouts. The site calls the function's direct Cloud
-  Run URL rather than the `cloudfunctions.net` proxy.
+  default 300 s header/body timeouts. The site calls the AI function directly
+  (Cloud Run or `cloudfunctions.net` URL), never the `/api/ai` Hosting rewrite,
+  which cuts requests off after 60 s.
 - Bound prompt, context, responses, time, and account request rates. Custom
   endpoints require exact operator-approved HTTPS destinations, without
   credentials, query strings, redirects, or per-request overrides.

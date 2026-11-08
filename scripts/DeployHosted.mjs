@@ -85,7 +85,11 @@ export function websiteEnvironment(environment) {
     VITE_TINYTLDR_FIREBASE_AUTH_DOMAIN: required(environment, "FIREBASE_AUTH_DOMAIN"),
     VITE_TINYTLDR_FIREBASE_DESIGNS_URL:
       environment.VITE_TINYTLDR_FIREBASE_DESIGNS_URL ?? "/api/designs",
-    VITE_TINYTLDR_FIREBASE_AI_URL: environment.VITE_TINYTLDR_FIREBASE_AI_URL ?? "/api/ai",
+    // AI generations can run for minutes; Hosting rewrites cut requests off at 60 s, so the
+    // site calls the function directly (it already allows the website origin via CORS).
+    VITE_TINYTLDR_FIREBASE_AI_URL:
+      environment.VITE_TINYTLDR_FIREBASE_AI_URL ??
+      `https://${environment.TINYTLDR_FIREBASE_FUNCTIONS_REGION ?? "us-central1"}-${required(environment, "TINYTLDR_FIREBASE_PROJECT_ID")}.cloudfunctions.net/ai`,
     VITE_TINYTLDR_FIREBASE_MEDIA_URL: environment.VITE_TINYTLDR_FIREBASE_MEDIA_URL ?? "/api/media",
     VITE_TINYTLDR_API_URL:
       environment.VITE_TINYTLDR_API_URL ??

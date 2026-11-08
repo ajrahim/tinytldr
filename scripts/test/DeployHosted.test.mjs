@@ -128,7 +128,9 @@ describe("Firebase Hosting deployment configuration", () => {
     const build = websiteEnvironment(environment);
     expect(build.VITE_TINYTLDR_FIREBASE_PROJECT_ID).toBe("example-project");
     expect(build.VITE_TINYTLDR_FIREBASE_DESIGNS_URL).toBe("/api/designs");
-    expect(build.VITE_TINYTLDR_FIREBASE_AI_URL).toBe("/api/ai");
+    expect(build.VITE_TINYTLDR_FIREBASE_AI_URL).toBe(
+      "https://us-central1-example-project.cloudfunctions.net/ai",
+    );
     expect(build.VITE_TINYTLDR_FIREBASE_MEDIA_URL).toBe("/api/media");
     expect(configuration.storage.rules).toBe("website/firebase/storage.rules");
     expect(build.VITE_TINYTLDR_API_URL).toBe("https://api.tinytldr.com");

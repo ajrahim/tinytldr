@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { chromium, type Browser, type Page } from "playwright";
 import { hasFirebaseEmulators, startWorkspaceTestServer } from "./WorkspaceServerFixture.js";
 import { expectDialogLayout } from "./DialogBrowserFixture.js";
+import { chooseSiteTheme, openSiteResource } from "./SiteChromeFixture.js";
 
 describe.skipIf(!hasFirebaseEmulators)("Consistent modal presentation and lifecycle", () => {
   let browser: Browser;
@@ -421,6 +422,8 @@ describe.skipIf(!hasFirebaseEmulators)("Consistent modal presentation and lifecy
       await welcome.getByRole("button", { name: "Start Creating", exact: true }).click();
       expect(await previewHeading.innerText()).toBe(originalTitle);
       expect(await page.evaluate(() => localStorage.getItem("tinytldr:welcome:v1"))).toBe("seen");
+      // Phones open Welcome from the sidebar drawer; the footer opener and its focus return are desktop chrome.
+      await page.setViewportSize({ width: 1440, height: 900 });
       const opener = page.getByRole("button", { name: "Welcome", exact: true });
       await opener.click();
       await welcome.waitFor();
@@ -501,17 +504,14 @@ describe.skipIf(!hasFirebaseEmulators)("Consistent modal presentation and lifecy
         ]) {
           await page.setViewportSize(viewport);
           for (const theme of ["Day", "Night"]) {
-            await page
-              .getByRole("group", { name: "Site appearance" })
-              .getByRole("button", { name: theme, exact: true })
-              .click();
+            await chooseSiteTheme(page, theme);
             await expect
               .poll(() => page.locator("html").getAttribute("class"))
               .toContain(theme === "Day" ? "light" : "dark");
             if (kind === "welcome") {
-              await page.getByRole("button", { name: "Welcome", exact: true }).click();
+              await openSiteResource(page, "Welcome");
             } else if (kind === "docs") {
-              await page.getByRole("button", { name: "MCP", exact: true }).click();
+              await openSiteResource(page, "MCP");
               await page
                 .getByRole("dialog", { name: "Bring your agent." })
                 .getByRole("button", { name: "Read the documentation" })

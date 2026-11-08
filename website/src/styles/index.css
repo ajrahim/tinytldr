@@ -5,6 +5,7 @@
 @import "./components/SiteHeader.css";
 @import "./components/SiteFooter.css";
 @import "./components/GitHubBadge.css";
+@import "./components/ThemeToggle.css";
 @import "./components/DesignSidebar.css";
 @import "./components/Dialog.css";
 @import "./components/AccountDialog.css";

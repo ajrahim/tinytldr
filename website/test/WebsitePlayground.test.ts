@@ -15,6 +15,7 @@ import {
 import { resolveAuthReturnPath } from "../src/state/RouterState.js";
 import { DESIGN_HISTORY_KEY, LocalDesignSchema } from "../src/lib/DesignHistory.js";
 import { setSource } from "./SourceEditorFixture.js";
+import { chooseSiteTheme } from "./SiteChromeFixture.js";
 
 const WEBSITE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -198,7 +199,7 @@ describe("Phase 4: tinytldr.com Website & Interactive Playground", () => {
         ]) {
           await page.setViewportSize(viewport);
           for (const theme of ["Day", "Night"]) {
-            await page.getByRole("button", { name: theme, exact: true }).click();
+            await chooseSiteTheme(page, theme);
             const geometry = await page.locator(".legal-page").evaluate((element) => {
               const footer = document.querySelector(".site-footer")!.getBoundingClientRect();
               const bounds = element.getBoundingClientRect();

@@ -10,6 +10,7 @@ import {
 } from "./SourceEditorFixture.js";
 import { DESIGN_HISTORY_KEY } from "../src/lib/DesignHistory.js";
 import { chooseDropdown } from "./DropdownFixture.js";
+import { chooseSiteTheme } from "./SiteChromeFixture.js";
 
 describe.skipIf(!hasFirebaseEmulators)("Horizontal artboard workspace", () => {
   let site: Awaited<ReturnType<typeof startWorkspaceTestServer>>;
@@ -67,7 +68,7 @@ describe.skipIf(!hasFirebaseEmulators)("Horizontal artboard workspace", () => {
       ]) {
         await page.setViewportSize(viewport);
         for (const theme of ["Day", "Night"]) {
-          await page.getByRole("button", { name: theme, exact: true }).click();
+          await chooseSiteTheme(page, theme);
           const offset = await opening.evaluate((element) => {
             const pane = element.parentElement!.getBoundingClientRect();
             const indicator = element.querySelector<HTMLElement>(".workspace-loading-spinner")!;
@@ -135,7 +136,7 @@ describe.skipIf(!hasFirebaseEmulators)("Horizontal artboard workspace", () => {
       ]) {
         await page.setViewportSize(viewport);
         for (const theme of ["Day", "Night"]) {
-          await page.getByRole("button", { name: theme, exact: true }).click();
+          await chooseSiteTheme(page, theme);
           await title.click();
           await page.keyboard.press("ArrowRight");
           expect(await title.evaluate((element) => element.matches(":focus-visible"))).toBe(true);
@@ -406,7 +407,7 @@ describe.skipIf(!hasFirebaseEmulators)("Horizontal artboard workspace", () => {
     for (const width of [1440, 390]) {
       await page.setViewportSize({ width, height: 1000 });
       for (const appearance of ["Day", "Night"]) {
-        await page.getByRole("button", { name: appearance, exact: true }).click();
+        await chooseSiteTheme(page, appearance);
         // The Day/Night reveal applies the class inside a view transition, after the click resolves.
         await expect
           .poll(() => page.locator("html").getAttribute("class"))
@@ -628,11 +629,11 @@ describe.skipIf(!hasFirebaseEmulators)("Horizontal artboard workspace", () => {
     const before = Number(await canvas.getAttribute("data-pan-x"));
     await session.send("Input.dispatchTouchEvent", {
       type: "touchStart",
-      touchPoints: [{ id: 1, x: 20, y: rect.y + 15 }],
+      touchPoints: [{ id: 1, x: 20, y }],
     });
     await session.send("Input.dispatchTouchEvent", {
       type: "touchMove",
-      touchPoints: [{ id: 1, x: 70, y: rect.y + 35 }],
+      touchPoints: [{ id: 1, x: 70, y: y - 20 }],
     });
     await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     await expect

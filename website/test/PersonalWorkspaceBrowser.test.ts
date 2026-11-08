@@ -13,6 +13,7 @@ import {
 import { createTemplateJson } from "../src/lib/TemplateEditor.js";
 import { artboardDocument } from "@tinytldr/core";
 import { chooseDropdown } from "./DropdownFixture.js";
+import { chooseSiteTheme } from "./SiteChromeFixture.js";
 
 describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => {
   let site: Awaited<ReturnType<typeof startWorkspaceTestServer>>;
@@ -140,7 +141,7 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
       const tooltip = page.getByRole("tooltip");
       const before = (await downloadSource(page, "Download design JSON")).text;
       for (const theme of ["Day", "Night"] as const) {
-        await page.getByRole("button", { name: theme, exact: true }).click();
+        await chooseSiteTheme(page, theme);
         await accountHelp.hover();
         await tooltip.waitFor();
         expect(await tooltip.textContent()).toContain("Designs you own");
@@ -203,7 +204,7 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
       const tooltip = page.getByRole("tooltip");
       for (const theme of ["Day", "Night"] as const) {
         await page.setViewportSize({ width: 390, height: 844 });
-        await page.getByRole("button", { name: theme, exact: true }).click();
+        await chooseSiteTheme(page, theme);
         await page.getByRole("button", { name: "Open sidebar", exact: true }).tap();
         const drawer = page.getByRole("dialog", { name: "Your designs menu" });
         const sidebar = drawer.getByRole("complementary", { name: "Your designs" });
@@ -369,9 +370,8 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
       );
       expect(panes[0]!.y).toBeLessThan(panes[1]!.y);
       expect(panes[1]!.y).toBeLessThan(panes[2]!.y);
-      expect(
-        Math.abs(panes[2]!.bottom - (await page.getByRole("contentinfo").boundingBox())!.y),
-      ).toBeLessThan(1);
+      // Phone workspaces move the footer into the sidebar drawer, so editors reach the viewport bottom.
+      expect(Math.abs(panes[2]!.bottom - height)).toBeLessThan(1);
       expect(
         await page.evaluate(
           () =>
@@ -1073,9 +1073,7 @@ describe.skipIf(!hasFirebaseEmulators)("Personal workspace browser flow", () => 
       for (const mode of ["light", "dark"]) {
         await page.goto(`${site.baseUrl}/studio`);
         await waitForCanvas(page);
-        await page
-          .getByRole("button", { name: mode === "light" ? "Day" : "Night", exact: true })
-          .click();
+        await chooseSiteTheme(page, mode === "light" ? "Day" : "Night");
         await chooseDropdown(page.getByRole("combobox", { name: "Canvas size" }), "x");
         await waitForCanvas(page);
         const size = await page.evaluate(() => ({

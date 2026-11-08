@@ -29,24 +29,11 @@
   align-items: center;
   gap: 8px;
 }
-.footer-theme-toggle {
-  display: flex;
-  gap: 2px;
-  padding: 2px;
-  border: 1px solid var(--ui-border);
-  border-radius: 6px;
-}
-.footer-theme-toggle button {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 7px;
-  border-radius: 4px;
-  font-size: 10px;
-}
-.footer-theme-toggle button[aria-pressed="true"] {
-  background: var(--ui-surface-subtle);
-  color: var(--ui-text);
+/* Keep in sync with the drawer breakpoint in PlaygroundPage.tsx. */
+@media (max-width: 900px) {
+  .site-footer.is-workspace {
+    display: none;
+  }
 }
 @media (max-width: 450px) {
   .site-footer {
@@ -60,27 +47,12 @@
     overflow-x: auto;
     scrollbar-width: none;
   }
-  .footer-theme-toggle,
-  .footer-actions {
-    flex-shrink: 0;
-  }
   .footer-actions {
     gap: 6px;
   }
   .site-footer nav > * {
     flex-shrink: 0;
     padding-block: 12px;
-  }
-  .footer-theme-toggle button {
-    padding: 6px 8px;
-  }
-  .footer-theme-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
   }
 }
 /* Phone landscape: keep the footer slim so the canvas keeps its height. */

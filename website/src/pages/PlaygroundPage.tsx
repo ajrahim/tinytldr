@@ -36,7 +36,7 @@ import { useExportJob } from "../hooks/useExportJob.js";
 import type { Account } from "../hooks/useAccount.js";
 import type { AiConnections } from "../hooks/useAiConnections.js";
 import type { DesignHistory } from "../hooks/useDesignHistory.js";
-import type { SiteThemeMode } from "../hooks/useThemeMode.js";
+import type { SiteThemeMode, ThemeOrigin } from "../hooks/useThemeMode.js";
 import { SIZE_PRESETS, compileArtboardHtml, type SizePresetId } from "../lib/BrowserCompiler.js";
 import { LocalDesignSchema, PageJsonSchema } from "../lib/DesignHistory.js";
 
@@ -59,6 +59,8 @@ export interface PlaygroundPageProps {
   onSignIn: () => void;
   onPersisted: () => void;
   themeMode: SiteThemeMode;
+  onSetTheme: (mode: SiteThemeMode, origin?: ThemeOrigin) => void;
+  onOpenSitePage: (path: string) => void;
   onWelcome: () => void;
   onMcp: () => void;
   libraryOpen: boolean;
@@ -234,6 +236,9 @@ export function PlaygroundPage(props: PlaygroundPageProps) {
       onSignIn={() => closeSidebarAnd(props.onSignIn)}
       onWelcome={() => closeSidebarAnd(props.onWelcome)}
       onMcp={() => closeSidebarAnd(props.onMcp)}
+      themeMode={props.themeMode}
+      onSetTheme={props.onSetTheme}
+      onOpenSitePage={(path) => closeSidebarAnd(() => props.onOpenSitePage(path))}
       hidden={!mobileSidebar && sidebarCollapsed}
       onClose={mobileSidebar ? () => setSidebarOpen(false) : undefined}
       busy={studio.busy || studio.loading || studio.versionLoading || !props.account.ready}

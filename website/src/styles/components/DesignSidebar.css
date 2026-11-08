@@ -235,6 +235,55 @@
 .sidebar-drawer::backdrop {
   background: #0006;
 }
+.sidebar-site-row {
+  display: none;
+}
+/* Keep in sync with the drawer breakpoint in PlaygroundPage.tsx. */
+@media (max-width: 900px) {
+  .design-sidebar nav {
+    min-height: 96px;
+  }
+  .sidebar-site-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .sidebar-site-menu {
+    margin-right: auto;
+  }
+  .sidebar-more-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 8px 0 6px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--ui-text-secondary);
+  }
+  .sidebar-more-button:hover,
+  .sidebar-more-button[aria-expanded="true"] {
+    background: var(--ui-surface-subtle);
+    color: var(--ui-text);
+  }
+  .sidebar-site-row .github-badge {
+    height: 28px;
+    padding: 0 7px;
+  }
+  .sidebar-site-row .github-badge-label,
+  .sidebar-site-row .theme-toggle-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .sidebar-site-row .theme-toggle button {
+    padding: 5px 7px;
+  }
+}
 @media (max-height: 560px) {
   .design-sidebar {
     padding-top: 12px;
@@ -248,6 +297,25 @@
     margin-top: 16px;
   }
   .sidebar-mcp-card {
+    margin-top: 8px;
+  }
+}
+@media (max-width: 900px) and (max-height: 560px) {
+  .design-sidebar nav {
+    min-height: 64px;
+    margin-top: 10px;
+  }
+  .new-design-button {
+    margin-top: 4px;
+  }
+  .sidebar-mcp-card,
+  .sidebar-account-card {
+    padding-block: 9px;
+  }
+  .sidebar-account-card small {
+    display: none;
+  }
+  .sidebar-site-row {
     margin-top: 8px;
   }
 }

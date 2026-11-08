@@ -22,6 +22,7 @@ import { chooseDropdown } from "../../test/DropdownFixture.js";
 import { downloadSource, setSource } from "../../test/SourceEditorFixture.js";
 import { LocalDesignSchema, DESIGN_HISTORY_KEY } from "../../src/lib/DesignHistory.js";
 import { SavedWorkspaceDesignSchema } from "@tinytldr/core";
+import { chooseSiteTheme } from "../../test/SiteChromeFixture.js";
 
 const SourceRecoverySchema = z.object({
   document: WorkspaceProjectSchema,
@@ -247,7 +248,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
           for (const width of [1440, 390, 320]) {
             await page.setViewportSize({ width, height: 844 });
             for (const theme of ["Day", "Night"] as const) {
-              await page.getByRole("button", { name: theme, exact: true }).click();
+              await chooseSiteTheme(page, theme);
               if (width <= 900)
                 await page.getByRole("button", { name: "Open sidebar", exact: true }).click();
               const sidebar = page.getByRole("complementary", {
@@ -772,7 +773,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
         expect((await database.collection("designs").doc(invalidId).get()).exists).toBe(false);
         await page.setViewportSize({ width: 390, height: 844 });
         for (const theme of ["Day", "Night"] as const) {
-          await page.getByRole("button", { name: theme, exact: true }).click();
+          await chooseSiteTheme(page, theme);
           await page.setViewportSize({ width: 320, height: 844 });
           for (const button of await page.locator(".site-header button").all()) {
             const bounds = await button.boundingBox();
@@ -966,7 +967,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
         await expect.poll(async () => (await aiService.list(uid))[0]!.model).toBe("gpt-test");
         for (const theme of ["Day", "Night"] as const) {
           await dialog.getByRole("button", { name: "Close AI connection" }).click();
-          await page.getByRole("button", { name: theme, exact: true }).click();
+          await chooseSiteTheme(page, theme);
           await chooseDropdown(
             page.getByRole("combobox", { name: "Model", exact: true }),
             "manage",
@@ -1094,7 +1095,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
         await page.setViewportSize({ width: 390, height: 844 });
         for (const theme of ["Day", "Night"] as const) {
           await dialog.getByRole("button", { name: "Close AI connection" }).click();
-          await page.getByRole("button", { name: theme, exact: true }).click();
+          await chooseSiteTheme(page, theme);
           await chooseDropdown(
             page.getByRole("combobox", { name: "Model", exact: true }),
             "manage",
@@ -1149,10 +1150,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
         ]) {
           await page.setViewportSize(viewport);
           for (const theme of ["Day", "Night"]) {
-            await page
-              .getByRole("group", { name: "Site appearance" })
-              .getByRole("button", { name: theme, exact: true })
-              .click();
+            await chooseSiteTheme(page, theme);
             await expect
               .poll(() => page.locator("html").getAttribute("class"))
               .toContain(theme === "Day" ? "light" : "dark");

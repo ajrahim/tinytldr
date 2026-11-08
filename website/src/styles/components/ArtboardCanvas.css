@@ -172,6 +172,20 @@ html.light .artboard-canvas {
   background: var(--ui-surface-subtle);
   color: var(--ui-text);
 }
+/* Phones and tablets dock the toolbar full width under the header.
+   Keep in sync with the drawer breakpoint in PlaygroundPage.tsx. */
+@media (max-width: 900px) {
+  .canvas-navigation {
+    top: 0;
+    right: 0;
+    left: 0;
+    justify-content: center;
+    padding: 4px 8px;
+    border-width: 0 0 1px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
 @media (max-width: 450px) {
   .canvas-navigation {
     gap: 1px;

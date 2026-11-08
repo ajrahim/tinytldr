@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { chromium, type Browser, type Locator, type Page } from "playwright";
 import { hasFirebaseEmulators, startWorkspaceTestServer } from "./WorkspaceServerFixture.js";
+import { chooseSiteTheme } from "./SiteChromeFixture.js";
 
 async function style(panel: Locator, item: Locator) {
   return {
@@ -59,7 +60,7 @@ describe.skipIf(!hasFirebaseEmulators)("Consistent website dropdowns", () => {
     ]) {
       await page.setViewportSize(viewport);
       for (const theme of ["Day", "Night"]) {
-        await page.getByRole("button", { name: theme, exact: true }).click();
+        await chooseSiteTheme(page, theme);
         await page.getByRole("button", { name: "More", exact: true }).click();
         const exports = page.getByRole("menu", { name: "Design actions" });
         const baseline = await style(

@@ -17,6 +17,7 @@ import { hasFirebaseEmulators, startWorkspaceTestServer } from "./WorkspaceServe
 import { downloadSource, setSource, showSourceEditors } from "./SourceEditorFixture.js";
 import { DESIGN_HISTORY_KEY, LocalDesignSchema } from "../src/lib/DesignHistory.js";
 import { chooseDropdown } from "./DropdownFixture.js";
+import { chooseSiteTheme } from "./SiteChromeFixture.js";
 
 describe.skipIf(!hasFirebaseEmulators)("Floating AI composer", () => {
   let browser: Browser;
@@ -154,7 +155,7 @@ describe.skipIf(!hasFirebaseEmulators)("Floating AI composer", () => {
     ]) {
       await page.setViewportSize(viewport);
       for (const theme of ["Day", "Night"]) {
-        await page.getByRole("button", { name: theme, exact: true }).click();
+        await chooseSiteTheme(page, theme);
         const prompt = page.getByLabel("Describe your idea");
         const focusStyle = () =>
           prompt.evaluate((element) => ({
@@ -264,7 +265,7 @@ describe.skipIf(!hasFirebaseEmulators)("Floating AI composer", () => {
       for (const width of [1440, 390, 320]) {
         await page.setViewportSize({ width, height: 844 });
         for (const theme of ["Day", "Night"]) {
-          await page.getByRole("button", { name: theme, exact: true }).click();
+          await chooseSiteTheme(page, theme);
           const add = (await page
             .getByRole("button", { name: "Add page", exact: true })
             .boundingBox())!;

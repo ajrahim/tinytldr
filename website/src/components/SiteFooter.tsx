@@ -1,7 +1,7 @@
-import { Moon, Sun } from "lucide-react";
 import type { SiteThemeMode, ThemeOrigin } from "../hooks/useThemeMode.js";
 import { GitHubBadge } from "./GitHubBadge.js";
 import { SiteLink } from "./SiteLink.js";
+import { ThemeToggle } from "./ThemeToggle.js";
 
 export function SiteFooter(props: {
   onWelcome: () => void;
@@ -10,9 +10,14 @@ export function SiteFooter(props: {
   onSetTheme: (mode: SiteThemeMode, origin?: ThemeOrigin) => void;
   onNavigate: (path: string) => void;
   pathname: string;
+  /** On phones the workspace sidebar drawer carries these links instead. */
+  inWorkspace?: boolean;
 }) {
   return (
-    <footer className="site-footer" aria-label="Site footer">
+    <footer
+      className={`site-footer${props.inWorkspace ? " is-workspace" : ""}`}
+      aria-label="Site footer"
+    >
       <nav aria-label="Site resources">
         <button type="button" onClick={props.onWelcome}>
           Welcome
@@ -33,28 +38,7 @@ export function SiteFooter(props: {
       </nav>
       <div className="footer-actions">
         <GitHubBadge />
-        <div className="footer-theme-toggle" role="group" aria-label="Site appearance">
-          <button
-            type="button"
-            aria-pressed={props.themeMode === "light"}
-            title="Day appearance"
-            onClick={(event) =>
-              props.onSetTheme("light", event.currentTarget.getBoundingClientRect())
-            }
-          >
-            <Sun size={13} aria-hidden="true" /> <span className="footer-theme-label">Day</span>
-          </button>
-          <button
-            type="button"
-            aria-pressed={props.themeMode === "dark"}
-            title="Night appearance"
-            onClick={(event) =>
-              props.onSetTheme("dark", event.currentTarget.getBoundingClientRect())
-            }
-          >
-            <Moon size={13} aria-hidden="true" /> <span className="footer-theme-label">Night</span>
-          </button>
-        </div>
+        <ThemeToggle themeMode={props.themeMode} onSetTheme={props.onSetTheme} />
       </div>
     </footer>
   );

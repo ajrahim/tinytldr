@@ -17,6 +17,7 @@ import { chooseAction, editTemplate, setSource } from "./SourceEditorFixture.js"
 import { chooseDropdown } from "./DropdownFixture.js";
 import { expectDialogLayout } from "./DialogBrowserFixture.js";
 import type { inspectLibrary } from "./MediaLibraryFixture.js";
+import { chooseSiteTheme } from "./SiteChromeFixture.js";
 
 describe.skipIf(!hasFirebaseEmulators)("Rendered media library", () => {
   let browser: Browser;
@@ -135,7 +136,7 @@ describe.skipIf(!hasFirebaseEmulators)("Rendered media library", () => {
       ]) {
         await page.setViewportSize(viewport);
         for (const theme of ["Day", "Night"]) {
-          await page.getByRole("button", { name: theme, exact: true }).click();
+          await chooseSiteTheme(page, theme);
           const geometry = () =>
             spinner.evaluate((element) => {
               const library = element.closest(".media-library")!;
@@ -201,7 +202,7 @@ describe.skipIf(!hasFirebaseEmulators)("Rendered media library", () => {
       ]) {
         await page.setViewportSize(viewport);
         for (const theme of ["Day", "Night"]) {
-          await page.getByRole("button", { name: theme, exact: true }).click();
+          await chooseSiteTheme(page, theme);
           await expectEmptyCentered(page);
           expect(
             await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
@@ -273,7 +274,7 @@ describe.skipIf(!hasFirebaseEmulators)("Rendered media library", () => {
       ]) {
         await page.setViewportSize(viewport);
         for (const theme of ["Day", "Night"]) {
-          await page.getByRole("button", { name: theme, exact: true }).click();
+          await chooseSiteTheme(page, theme);
           await expectEmptyCentered(page);
         }
       }
@@ -651,10 +652,7 @@ describe.skipIf(!hasFirebaseEmulators)("Rendered media library", () => {
     ]) {
       await page.setViewportSize(viewport);
       for (const theme of ["Day", "Night"]) {
-        await page
-          .locator(".site-footer")
-          .getByRole("button", { name: theme, exact: true })
-          .evaluate((element) => element.click());
+        await chooseSiteTheme(page, theme);
         await expect
           .poll(() => page.locator("html").getAttribute("class"))
           .toContain(theme === "Day" ? "light" : "dark");
@@ -713,9 +711,7 @@ describe.skipIf(!hasFirebaseEmulators)("Rendered media library", () => {
     for (const width of [320, 390, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       for (const theme of ["light", "dark"]) {
-        await page
-          .getByRole("button", { name: theme === "light" ? "Day" : "Night", exact: true })
-          .click();
+        await chooseSiteTheme(page, theme === "light" ? "Day" : "Night");
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
           true,
         );

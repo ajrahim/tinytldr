@@ -6,6 +6,7 @@ import { setSource, downloadSource, showSourceEditors } from "./SourceEditorFixt
 import { createBlankDocument } from "../src/lib/WorkspaceTemplates.js";
 import { DESIGN_HISTORY_KEY } from "../src/lib/DesignHistory.js";
 import { chooseDropdown } from "./DropdownFixture.js";
+import { chooseSiteTheme } from "./SiteChromeFixture.js";
 
 describe.skipIf(!hasFirebaseEmulators)("Compact icon header and editable saved versions", () => {
   let site: Awaited<ReturnType<typeof startWorkspaceTestServer>>;
@@ -61,7 +62,7 @@ describe.skipIf(!hasFirebaseEmulators)("Compact icon header and editable saved v
       .getByLabel("Design title", { exact: true })
       .fill("A long title that must shrink instead of wrapping the toolbar controls");
     for (const theme of ["Day", "Night"]) {
-      await page.getByRole("button", { name: theme, exact: true }).click();
+      await chooseSiteTheme(page, theme);
       for (const width of [1440, 390, 320]) {
         await page.setViewportSize({ width, height: 900 });
         const header = page.locator('header[aria-label="Design toolbar"]');
@@ -95,6 +96,13 @@ describe.skipIf(!hasFirebaseEmulators)("Compact icon header and editable saved v
           await header.getByRole("combobox", { name: "Canvas size", exact: true }).count(),
         ).toBe(0);
         const navigation = page.locator(".canvas-navigation");
+        // Resizing during the Day/Night view transition can report one stale frame first.
+        await expect
+          .poll(async () => {
+            const box = (await navigation.boundingBox())!;
+            return box.x >= 0 && box.x + box.width <= width;
+          })
+          .toBe(true);
         const navigationBounds = (await navigation.boundingBox())!;
         expect(navigationBounds.x).toBeGreaterThanOrEqual(0);
         expect(navigationBounds.x + navigationBounds.width).toBeLessThanOrEqual(width);
@@ -140,10 +148,17 @@ describe.skipIf(!hasFirebaseEmulators)("Compact icon header and editable saved v
         const sidebarToggle = (await page.locator(".sidebar-toggle").boundingBox())!;
         const title = (await page.getByLabel("Design title", { exact: true }).boundingBox())!;
         expect(sidebarToggle.x + sidebarToggle.width).toBeLessThanOrEqual(title.x);
-        const footer = (await page.getByRole("contentinfo").boundingBox())!;
-        expect(footer).toMatchObject({ x: 0, width, height: 48, y: 852 });
         const preview = (await page.locator(".preview-split-preview").boundingBox())!;
-        expect(preview.y + preview.height).toBe(footer.y);
+        if (width > 900) {
+          const footer = (await page.getByRole("contentinfo").boundingBox())!;
+          expect(footer).toMatchObject({ x: 0, width, height: 48, y: 852 });
+          expect(preview.y + preview.height).toBe(footer.y);
+        } else {
+          // Phones and tablets move the footer into the sidebar drawer and dock the toolbar.
+          expect(await page.getByRole("contentinfo").isVisible()).toBe(false);
+          expect(preview.y + preview.height).toBe(900);
+          expect(navigationBounds).toMatchObject({ x: 0, width, y: bounds.y + bounds.height });
+        }
         expect(
           await page.locator(".save-caption").evaluate((el) => getComputedStyle(el).position),
         ).toBe("absolute");
@@ -250,11 +265,14 @@ describe.skipIf(!hasFirebaseEmulators)("Compact icon header and editable saved v
         .getAttribute("aria-expanded"),
     ).toBe("false");
     await page.setViewportSize({ width: 320, height: 844 });
-    await footer.getByRole("button", { name: "Day", exact: true }).click();
+    expect(await footer.isVisible()).toBe(false);
+    await page.getByRole("button", { name: "Open sidebar", exact: true }).click();
+    const drawer = page.getByRole("dialog", { name: "Your designs menu" });
+    await drawer.getByRole("button", { name: "Day", exact: true }).click();
     await expect.poll(() => page.locator("html").getAttribute("class")).toContain("light");
-    expect(await page.getByRole("button", { name: "Open sidebar", exact: true }).isVisible()).toBe(
-      true,
-    );
+    expect(
+      await drawer.getByRole("button", { name: "Day", exact: true }).getAttribute("aria-pressed"),
+    ).toBe("true");
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
     await context.close();
   });
@@ -332,16 +350,70 @@ describe.skipIf(!hasFirebaseEmulators)("Compact icon header and editable saved v
     expect((await reveals()).length).toBe(1);
 
     await page.setViewportSize({ width: 320, height: 844 });
-    expect(await footer.getByRole("link", { name: "GitHub", exact: true }).isVisible()).toBe(true);
+    expect(await footer.isVisible()).toBe(false);
+    await page.getByRole("button", { name: "Open sidebar", exact: true }).click();
+    const drawer = page.getByRole("dialog", { name: "Your designs menu" });
+    expect(await drawer.getByRole("link", { name: "GitHub", exact: true }).count()).toBe(1);
+    await expectBadgeBeside(
+      drawer.getByRole("link", { name: "GitHub", exact: true }),
+      drawer.getByRole("group", { name: "Site appearance" }),
+    );
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
     await context.close();
   });
 
-  it("adapts the footer and prompt to phone portrait and landscape without changing desktop", async () => {
+  it("docks the canvas toolbar, moves footer links into the sidebar, and adapts the prompt on phones without changing desktop", async () => {
     const promptExpanded = (page: Page) =>
       page.getByRole("button", { name: "Prompt", exact: true }).getAttribute("aria-expanded");
     const editorsToggle = (page: Page) =>
       page.getByRole("button", { name: "Source editors", exact: true });
+    async function expectPhoneChrome(page: Page, width: number, height: number) {
+      expect(await page.getByRole("contentinfo", { name: "Site footer" }).isVisible()).toBe(false);
+      const header = (await page.locator('header[aria-label="Design toolbar"]').boundingBox())!;
+      const toolbar = page.locator(".canvas-navigation");
+      expect((await toolbar.boundingBox())!).toMatchObject({
+        x: 0,
+        width,
+        y: header.y + header.height,
+      });
+      expect(
+        await toolbar.evaluate((element) => {
+          const css = getComputedStyle(element);
+          return [css.borderRadius, css.boxShadow];
+        }),
+      ).toEqual(["0px", "none"]);
+      await page.getByRole("button", { name: "Open sidebar", exact: true }).click();
+      const drawer = page.getByRole("dialog", { name: "Your designs menu" });
+      const row = drawer.getByRole("group", { name: "Site resources" });
+      await row.waitFor();
+      const drawerBox = (await drawer.boundingBox())!;
+      const boxes = await row
+        .locator(":scope > *")
+        .evaluateAll((items) =>
+          items.map((item) => item.getBoundingClientRect().toJSON() as DOMRect),
+        );
+      expect(boxes).toHaveLength(3);
+      const middles = boxes.map((box) => Math.round(box.top + box.height / 2));
+      expect(Math.max(...middles) - Math.min(...middles)).toBeLessThanOrEqual(1);
+      for (const box of boxes) {
+        expect(box.left).toBeGreaterThanOrEqual(drawerBox.x);
+        expect(box.right).toBeLessThanOrEqual(drawerBox.x + drawerBox.width);
+        expect(box.bottom).toBeLessThanOrEqual(height);
+      }
+      // More... sits on the left; GitHub and Day/Night are grouped on the right.
+      expect(boxes[1]!.left - boxes[0]!.right).toBeGreaterThan(16);
+      expect(boxes[2]!.left - boxes[1]!.right).toBeLessThanOrEqual(8);
+      for (const name of ["Day", "Night"]) {
+        const button = row.getByRole("button", { name, exact: true });
+        expect((await button.boundingBox())!.width).toBeLessThanOrEqual(32);
+      }
+      expect(
+        await drawer
+          .getByRole("navigation", { name: "Saved designs" })
+          .evaluate((element) => getComputedStyle(element).overflowY),
+      ).toBe("auto");
+      return drawer;
+    }
 
     const desktop = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     let page = await desktop.newPage();
@@ -350,6 +422,11 @@ describe.skipIf(!hasFirebaseEmulators)("Compact icon header and editable saved v
     expect(await promptExpanded(page)).toBe("true");
     const desktopNight = page.getByRole("button", { name: "Night", exact: true });
     expect(await desktopNight.innerText()).toBe("Night");
+    expect(await page.getByRole("contentinfo", { name: "Site footer" }).isVisible()).toBe(true);
+    expect(await page.getByRole("group", { name: "Site resources" }).count()).toBe(0);
+    expect(
+      await page.locator(".canvas-navigation").evaluate((el) => getComputedStyle(el).borderRadius),
+    ).toBe("6px");
     await desktop.close();
 
     const portrait = await browser.newContext({
@@ -359,25 +436,27 @@ describe.skipIf(!hasFirebaseEmulators)("Compact icon header and editable saved v
     });
     page = await portrait.newPage();
     await open(page, "", false);
-    const footer = page.getByRole("contentinfo", { name: "Site footer" });
-    expect((await footer.boundingBox())!.height).toBe(48);
-    const rows = await footer.locator("nav > *, .footer-actions > *").evaluateAll((items) =>
-      items.map((item) => {
-        const box = item.getBoundingClientRect();
-        return Math.round(box.top + box.height / 2);
-      }),
-    );
-    expect(Math.max(...rows) - Math.min(...rows)).toBeLessThanOrEqual(1);
-    for (const name of ["Day", "Night"]) {
-      const button = footer.getByRole("button", { name, exact: true });
-      expect((await button.boundingBox())!.width).toBeLessThanOrEqual(32);
-    }
     expect(await promptExpanded(page)).toBe("true");
     await editorsToggle(page).click();
     await expect.poll(() => promptExpanded(page)).toBe("false");
     await editorsToggle(page).click();
     await expect.poll(() => promptExpanded(page)).toBe("true");
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
+    const drawer = await expectPhoneChrome(page, 320, 700);
+    await drawer.getByRole("button", { name: "More site links", exact: true }).click();
+    const menu = page.getByRole("menu", { name: "Site resources" });
+    expect(await menu.getByRole("menuitem").allInnerTexts()).toEqual([
+      "Welcome",
+      "MCP",
+      "Privacy",
+      "Terms",
+    ]);
+    await menu.getByRole("menuitem", { name: "Privacy", exact: true }).click();
+    await page.getByRole("heading", { name: "Privacy Policy", exact: true }).waitFor();
+    expect(new URL(page.url()).pathname).toBe("/privacy");
+    expect(await drawer.isVisible()).toBe(false);
+    // Legal pages have no sidebar, so they keep the footer.
+    expect(await page.getByRole("contentinfo", { name: "Site footer" }).isVisible()).toBe(true);
     await portrait.close();
 
     const landscape = await browser.newContext({
@@ -387,10 +466,9 @@ describe.skipIf(!hasFirebaseEmulators)("Compact icon header and editable saved v
     });
     page = await landscape.newPage();
     await open(page, "", false);
-    expect(
-      (await page.getByRole("contentinfo", { name: "Site footer" }).boundingBox())!.height,
-    ).toBe(36);
     expect(await promptExpanded(page)).toBe("false");
+    await expectPhoneChrome(page, 844, 390);
+    await page.getByRole("button", { name: "Close sidebar", exact: true }).click();
     await page.getByRole("button", { name: "Prompt", exact: true }).click();
     const composer = (await page.getByRole("form", { name: "AI design composer" }).boundingBox())!;
     expect(composer.height).toBeLessThanOrEqual(90);

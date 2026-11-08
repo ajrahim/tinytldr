@@ -1,9 +1,12 @@
-import { Ellipsis, Grid2X2, Plus, Sparkles, UserRound, X } from "lucide-react";
+import { Ellipsis, Grid2X2, Info, Plus, Sparkles, UserRound, X } from "lucide-react";
 import { useId } from "react";
 import type { SavedWorkspaceDesign } from "@tinytldr/core";
 import type { DesignHistory } from "../hooks/useDesignHistory.js";
+import type { SiteThemeMode, ThemeOrigin } from "../hooks/useThemeMode.js";
 import { InfoTooltip } from "./InfoTooltip.js";
 import { Dropdown } from "./Dropdown.js";
+import { GitHubBadge } from "./GitHubBadge.js";
+import { ThemeToggle } from "./ThemeToggle.js";
 import type { DesignListMutation, DesignListTarget } from "../lib/DesignRepository.js";
 
 export interface DesignSidebarProps {
@@ -16,6 +19,9 @@ export interface DesignSidebarProps {
   onSignIn: () => void;
   onWelcome: () => void;
   onMcp: () => void;
+  themeMode: SiteThemeMode;
+  onSetTheme: (mode: SiteThemeMode, origin?: ThemeOrigin) => void;
+  onOpenSitePage: (path: string) => void;
   hidden?: boolean;
   libraryOpen: boolean;
   onLibrary: () => void;
@@ -34,6 +40,9 @@ export function DesignSidebar({
   onSignIn,
   onWelcome,
   onMcp,
+  themeMode,
+  onSetTheme,
+  onOpenSitePage,
   hidden,
   libraryOpen,
   onLibrary,
@@ -135,6 +144,48 @@ export function DesignSidebar({
           <UserRound size={14} aria-hidden="true" />
           <small>{signedIn ? "Manage your sign-in." : "Your own space. Always optional."}</small>
         </button>
+        {/* Phone-only replacement for the site footer (see SiteFooter.css). */}
+        <div className="sidebar-site-row" aria-label="Site resources" role="group">
+          <Dropdown
+            label="More site links"
+            popoverLabel="Site resources"
+            placement="top"
+            className="sidebar-site-menu"
+            triggerProps={{ className: "sidebar-more-button", title: "More" }}
+            trigger={
+              <>
+                <Info size={14} aria-hidden="true" /> <span>More&hellip;</span>
+              </>
+            }
+          >
+            {(close) =>
+              (
+                [
+                  ["Welcome", onWelcome],
+                  ["MCP", onMcp],
+                  ["Privacy", () => onOpenSitePage("/privacy")],
+                  ["Terms", () => onOpenSitePage("/terms")],
+                ] as const
+              ).map(([label, action]) => (
+                <button
+                  key={label}
+                  type="button"
+                  role="menuitem"
+                  className="dropdown-item"
+                  tabIndex={-1}
+                  onClick={() => {
+                    close();
+                    action();
+                  }}
+                >
+                  {label}
+                </button>
+              ))
+            }
+          </Dropdown>
+          <GitHubBadge />
+          <ThemeToggle themeMode={themeMode} onSetTheme={onSetTheme} />
+        </div>
       </div>
     </aside>
   );

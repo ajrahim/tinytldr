@@ -203,6 +203,8 @@ export function App() {
               onSignIn={openAccount}
               onPersisted={refreshLibrary}
               themeMode={themeMode}
+              onSetTheme={setThemeMode}
+              onOpenSitePage={(path) => navigateTo(path, true)}
               onWelcome={() => setGuideTopic("welcome")}
               onMcp={() => setGuideTopic("mcp")}
               libraryOpen={route.page === "library"}
@@ -229,6 +231,7 @@ export function App() {
         onSetTheme={setThemeMode}
         onNavigate={(path) => navigateTo(path, true)}
         pathname={route.pathname}
+        inWorkspace={!legalPage && !!workspace}
       />
 
       {guideTopic && (

@@ -156,6 +156,11 @@ independent of the renderer, existing Firebase accounts, OAuth records and priva
 artifact storage; do not migrate accounts or rotate credentials for a routing
 upgrade.
 
+Optional `TINYTLDR_OPENAI_APPS_CHALLENGE` (Cloud Run env var, URL-safe 16–128
+characters) serves OpenAI's domain-verification token as `text/plain` at
+`/.well-known/openai-apps-challenge`; the route is absent when unset. Image-only
+`gcloud run deploy` preserves it.
+
 After separate owner approval for the additional recurring costs:
 
 1. Create a global external HTTPS Application Load Balancer with a serverless NEG

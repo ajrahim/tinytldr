@@ -39,6 +39,7 @@ export async function startHostedMcpServer(options: {
   storage: ArtifactStorage;
   designs: SavedDesignReader;
   websiteDirectory: string;
+  openAiAppsChallenge?: string;
   port?: number;
   host?: string;
   reportError: (code: string, requestId: string) => void;
@@ -59,6 +60,11 @@ export async function startHostedMcpServer(options: {
   app.get("/health", (_req, res) => {
     res.json({ ok: true, service: "tinytldr-mcp" });
   });
+  const openAiAppsChallenge = options.openAiAppsChallenge;
+  if (openAiAppsChallenge)
+    app.get("/.well-known/openai-apps-challenge", (_req, res) => {
+      res.type("text/plain").send(openAiAppsChallenge);
+    });
   app.use(express.json({ limit: HOSTED_MCP_REQUEST_MAX_BYTES }));
   app.get("/.well-known/oauth-protected-resource", (_req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");

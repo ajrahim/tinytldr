@@ -186,6 +186,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
         designs: new SavedDesignReader(database),
         port: 0,
         websiteDirectory: directory,
+        openAiAppsChallenge: "test-openai-apps-challenge-token",
         reportError: (code) => reports.push(code),
         storage: {
           async upload(file, key) {
@@ -255,6 +256,9 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
       const preflight = await fetch(`${base}/mcp`, { method: "OPTIONS" });
       expect(preflight.status).toBe(204);
       expect(preflight.headers.get("access-control-allow-headers")).toContain("Authorization");
+      const challenge = await fetch(`${base}/.well-known/openai-apps-challenge`);
+      expect(challenge.status).toBe(200);
+      expect(await challenge.text()).toBe("test-openai-apps-challenge-token");
     });
 
     it("registers public clients, normalizes names and rejects unsafe redirects", async () => {
@@ -594,6 +598,8 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
         for (const tool of tools) {
           expect(tool.annotations?.title, tool.name).toBeTruthy();
           expect(tool.annotations?.openWorldHint, tool.name).toBe(false);
+          expect(typeof tool.annotations?.readOnlyHint, tool.name).toBe("boolean");
+          expect(tool.annotations?.destructiveHint, tool.name).toBe(false);
           for (const other of names)
             if (other !== tool.name) expect(tool.description, tool.name).not.toContain(other);
           expect(tool.description, tool.name).not.toMatch(

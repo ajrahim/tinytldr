@@ -31,6 +31,10 @@ async function main() {
         }),
       port: z.coerce.number().int().min(1).max(65535),
       websiteDirectory: z.string().min(1),
+      openAiAppsChallenge: z
+        .string()
+        .regex(/^[A-Za-z0-9_-]{16,128}$/)
+        .optional(),
     })
     .parse({
       projectId: process.env.TINYTLDR_FIREBASE_PROJECT_ID,
@@ -39,6 +43,7 @@ async function main() {
       issuer: process.env.TINYTLDR_MCP_ISSUER_URL,
       port: process.env.PORT ?? "8080",
       websiteDirectory: process.env.TINYTLDR_MCP_WEBSITE_DIRECTORY,
+      openAiAppsChallenge: process.env.TINYTLDR_OPENAI_APPS_CHALLENGE || undefined,
     });
   const app = initializeApp({
     projectId: configuration.projectId,
@@ -55,6 +60,7 @@ async function main() {
     storage: firebaseArtifactStorage(getStorage(app), configuration.bucket),
     designs: new SavedDesignReader(getFirestore(app)),
     websiteDirectory: path.resolve(configuration.websiteDirectory),
+    openAiAppsChallenge: configuration.openAiAppsChallenge,
     port: configuration.port,
     host: "0.0.0.0",
     reportError: (code, requestId) =>

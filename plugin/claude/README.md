@@ -1,6 +1,6 @@
 # tinytldr for Claude Code
 
-Turn notes, articles, changelogs, and diffs into social images, PDF carousels, and MP4 videos from Claude Code. This plugin bundles:
+Generate social images, PDF carousels, and MP4 videos from any content in Claude Code, using the designs you saved on www.tinytldr.com so every export stays consistent with your own layouts. This plugin bundles:
 
 - the `tinytldr` skill (template selection, copywriting limits, and render workflow);
 - the hosted tinytldr MCP server at `https://mcp.tinytldr.com/mcp`.
@@ -16,14 +16,15 @@ Run `/mcp` in Claude Code and sign in to `plugin:tinytldr:tinytldr` with your ti
 
 ## Tools
 
-| Tool                                     | Purpose                                                      |
-| ---------------------------------------- | ------------------------------------------------------------ |
-| `list_templates`, `get_template_schema`  | Discover the 12 built-in templates and their slot limits     |
-| `validate_template_data`, `preview_post` | Check overflow and contrast and show an inline preview       |
-| `render_post`, `render_workspace`        | Export PNG, JPEG, WebP, PDF, or MP4 as signed download links |
-| `list_designs`, `get_design`             | Read designs saved on www.tinytldr.com (read only)           |
+| Tool                                     | Annotation    | Purpose                                                                  |
+| ---------------------------------------- | ------------- | ------------------------------------------------------------------------ |
+| `list_designs`, `get_design`             | read-only     | Read the designs you saved on www.tinytldr.com                           |
+| `render_workspace`                       | creates files | Export a design as PNG, JPEG, WebP, a multipage PDF, or MP4              |
+| `list_templates`, `get_template_schema`  | read-only     | Browse optional starter templates and their slot limits                  |
+| `validate_template_data`, `preview_post` | read-only     | Check overflow and contrast and show an inline preview (no files stored) |
+| `render_post`                            | creates files | Export a starter template as an image, PDF, or video                     |
 
-tinytldr only renders. It never posts to social networks or edits your saved designs.
+Exports go to private storage and return signed download links that expire in five minutes. tinytldr only renders: it never posts to social networks or edits, deletes, or shares your saved designs.
 
 ## Maintain
 

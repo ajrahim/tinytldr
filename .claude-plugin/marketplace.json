@@ -12,7 +12,7 @@
     {
       "name": "tinytldr",
       "source": "./plugin/claude",
-      "description": "Turn notes, articles, changelogs, and diffs into social images, PDF carousels, and MP4 videos with the hosted tinytldr MCP server.",
+      "description": "Generate social images, PDF carousels, and MP4 videos from any content with your saved tinytldr designs, keeping every export consistent with your own layouts.",
       "category": "design"
     }
   ]

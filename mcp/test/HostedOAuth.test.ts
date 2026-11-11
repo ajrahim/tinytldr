@@ -589,9 +589,35 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AU
         expect(tools.map((tool) => tool.name)).toEqual(
           expect.arrayContaining(["list_designs", "get_design"]),
         );
-        expect(tools.find((tool) => tool.name === "list_templates")?.description).toContain(
-          "list_designs",
+        // Directory policy: descriptions only describe the tool, and every tool is annotated.
+        const names = tools.map((tool) => tool.name);
+        for (const tool of tools) {
+          expect(tool.annotations?.title, tool.name).toBeTruthy();
+          expect(tool.annotations?.openWorldHint, tool.name).toBe(false);
+          for (const other of names)
+            if (other !== tool.name) expect(tool.description, tool.name).not.toContain(other);
+          expect(tool.description, tool.name).not.toMatch(
+            /\b(call|use this whenever|follow with)\b/i,
+          );
+        }
+        const readOnly = tools
+          .filter((tool) => tool.annotations?.readOnlyHint)
+          .map((tool) => tool.name);
+        expect(readOnly.sort()).toEqual(
+          [
+            "get_design",
+            "get_template_schema",
+            "list_designs",
+            "list_templates",
+            "preview_post",
+            "validate_template_data",
+          ].sort(),
         );
+        for (const name of ["render_post", "render_workspace"])
+          expect(tools.find((tool) => tool.name === name)?.annotations).toMatchObject({
+            readOnlyHint: false,
+            destructiveHint: false,
+          });
         const prompt = await client.getPrompt({
           name: "distill_to_post",
           arguments: { source: "Weekly news." },

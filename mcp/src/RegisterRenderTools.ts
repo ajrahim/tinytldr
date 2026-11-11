@@ -15,6 +15,7 @@ import {
   type RenderOutputFormat,
   type RenderPostOutput,
 } from "@tinytldr/renderer";
+import { exportTool } from "./ToolAnnotations.js";
 import { getTemplateManifest } from "@tinytldr/templates";
 
 export interface HostedArtifactPublisher {
@@ -81,10 +82,14 @@ export function registerRenderTools(server: McpServer, options: RenderToolOption
   const postDescription =
     "Render a social post, carousel, or animated video and return dimensions, byte size, a preview, and warnings.";
   if (artifacts) {
-    server.tool(
+    server.registerTool(
       "render_post",
-      `${postDescription} Hosted exports return short-lived signed download URLs; storage paths are managed by the server.`,
-      HostedRenderPostToolSchema.shape,
+      {
+        title: "Export post",
+        description: `${postDescription} Hosted exports are stored privately and returned as short-lived signed download URLs.`,
+        annotations: exportTool("Export post", false),
+        inputSchema: HostedRenderPostToolSchema.shape,
+      },
       (args) =>
         run(() => {
           const kind = getTemplateManifest(args.templateId).kind;
@@ -93,10 +98,15 @@ export function registerRenderTools(server: McpServer, options: RenderToolOption
           return post({ ...args, format, outputPath: artifacts.path(format) });
         }),
     );
-    server.tool(
+    server.registerTool(
       "render_workspace",
-      "Render an authored version-2 design JSON with up to 20 independent artboards. Images/videos return files in page order; PDF returns one multipage document. Returns signed download URLs and a small preview. Pass the document from get_design (the user's saved designs, with updated data) or a downloaded design.json.",
-      HostedWorkspaceRenderToolSchema.shape,
+      {
+        title: "Export design",
+        description:
+          "Render a version-2 design JSON document (a saved design or a downloaded design.json) with up to 20 independent artboards. Images and videos return files in page order; PDF returns one multipage document. Returns short-lived signed download URLs and a small preview. Saved designs are not modified.",
+        annotations: exportTool("Export design", false),
+        inputSchema: HostedWorkspaceRenderToolSchema.shape,
+      },
       (args) =>
         run(async () => {
           const result = await renderWorkspaceProject({
@@ -109,16 +119,26 @@ export function registerRenderTools(server: McpServer, options: RenderToolOption
         }),
     );
   } else {
-    server.tool(
+    server.registerTool(
       "render_post",
-      "Render a social post, carousel, or animated video to disk and return output paths, dimensions, byte size, inline previewDataUrl, and warnings.",
-      RenderPostToolSchema.shape,
+      {
+        title: "Export post",
+        description:
+          "Render a social post, carousel, or animated video to disk and return output paths, dimensions, byte size, inline previewDataUrl, and warnings.",
+        annotations: exportTool("Export post", true),
+        inputSchema: RenderPostToolSchema.shape,
+      },
       (args) => run(() => post(args)),
     );
-    server.tool(
+    server.registerTool(
       "render_workspace",
-      "Render an authored version-2 design JSON with up to 20 independent artboards in page order. Each page has its own HTML/CSS/template manifest, title and non-rendered purpose description; size is shared. Images and videos return one or more files; PDF returns one multipage document. This does not access browser drafts or saved links. Example: pass downloaded design.json as document, format:'pdf', outputPath:'./design.pdf'.",
-      WorkspaceRenderToolSchema.shape,
+      {
+        title: "Export design",
+        annotations: exportTool("Export design", true),
+        inputSchema: WorkspaceRenderToolSchema.shape,
+        description:
+          "Render an authored version-2 design JSON with up to 20 independent artboards in page order. Each page has its own HTML/CSS/template manifest, title and non-rendered purpose description; size is shared. Images and videos return one or more files; PDF returns one multipage document. This does not access browser drafts or saved links. Example: pass downloaded design.json as document, format:'pdf', outputPath:'./design.pdf'.",
+      },
       (args) =>
         run(async () => {
           const result = await renderWorkspaceProject({

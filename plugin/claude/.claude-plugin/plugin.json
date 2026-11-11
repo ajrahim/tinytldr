@@ -3,7 +3,7 @@
   "name": "tinytldr",
   "displayName": "tinytldr",
   "version": "0.1.0",
-  "description": "Turn notes, articles, changelogs, and diffs into polished social images, PDF carousels, and MP4 videos with the hosted tinytldr MCP server, including your own saved tinytldr designs.",
+  "description": "Generate social images, PDF carousels, and MP4 videos from any content with your saved tinytldr designs, keeping every export consistent with your own layouts.",
   "author": {
     "name": "AJ Rahim",
     "url": "https://www.tinytldr.com"

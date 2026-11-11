@@ -11,6 +11,7 @@ import {
 import { ChromiumRenderer, previewTemplatePost, validateTemplatePost } from "@tinytldr/renderer";
 import { getTemplateManifest, listTemplates } from "@tinytldr/templates";
 import { registerRenderTools, type RenderToolOptions } from "./RegisterRenderTools.js";
+import { readOnlyTool } from "./ToolAnnotations.js";
 import { registerDesignTools, type SavedDesignSource } from "./RegisterDesignTools.js";
 
 export function listSizes(): readonly SizePresetDefinition[] {
@@ -34,32 +35,34 @@ export function createTinytldrMcpServer(options?: {
   const renderer = options?.renderer ?? new ChromiumRenderer();
   const run = options?.runRender ?? (async <T>(operation: () => Promise<T>) => operation());
   const designs = options?.designs;
-  const savedDesignHint = designs
-    ? " Built-in templates only: when the user names their own saved template or design, call list_designs and get_design instead."
-    : "";
 
   const server = new McpServer({
     name: "tinytldr",
     version: "0.1.0",
   });
 
-  server.tool(
+  server.registerTool(
     "list_templates",
-    `List available tinytldr templates with optional filtering by kind (static, carousel, video), tag, or aspect ratio / size preset.${savedDesignHint}`,
     {
-      kind: TemplateKindSchema.optional().describe(
-        "Optional template kind filter: 'static', 'carousel', or 'video'.",
-      ),
-      tag: z
-        .string()
-        .optional()
-        .describe("Optional tag filter (e.g. 'quote', 'metric', 'code', 'x')."),
-      aspect: z
-        .string()
-        .optional()
-        .describe(
-          "Optional aspect ratio or size preset filter (e.g. '1:1', '4:5', '16:9', 'square', 'x').",
+      title: "List built-in templates",
+      description:
+        "List the built-in tinytldr templates and size presets, optionally filtered by kind (static, carousel, video), tag, or aspect ratio / size preset.",
+      annotations: readOnlyTool("List built-in templates"),
+      inputSchema: {
+        kind: TemplateKindSchema.optional().describe(
+          "Optional template kind filter: 'static', 'carousel', or 'video'.",
         ),
+        tag: z
+          .string()
+          .optional()
+          .describe("Optional tag filter (e.g. 'quote', 'metric', 'code', 'x')."),
+        aspect: z
+          .string()
+          .optional()
+          .describe(
+            "Optional aspect ratio or size preset filter (e.g. '1:1', '4:5', '16:9', 'square', 'x').",
+          ),
+      },
     },
     async (args) => {
       const templates = listTemplates({
@@ -85,14 +88,19 @@ export function createTinytldrMcpServer(options?: {
     },
   );
 
-  server.tool(
+  server.registerTool(
     "get_template_schema",
-    "Get the full template.json manifest for a template, including slot definitions, character limits, theme tokens, sample data, and distillation guidance.",
     {
-      templateId: z
-        .string()
-        .min(1)
-        .describe("Template ID (e.g. 'quote-card', 'stat-callout', 'code-snippet')."),
+      title: "Get template schema",
+      description:
+        "Get the full template.json manifest for a built-in template, including slot definitions, character limits, theme tokens, sample data, and distillation guidance.",
+      annotations: readOnlyTool("Get template schema"),
+      inputSchema: {
+        templateId: z
+          .string()
+          .min(1)
+          .describe("Template ID (e.g. 'quote-card', 'stat-callout', 'code-snippet')."),
+      },
     },
     async ({ templateId }) => {
       const manifest = getTemplateManifest(templateId);
@@ -107,10 +115,15 @@ export function createTinytldrMcpServer(options?: {
     },
   );
 
-  server.tool(
+  server.registerTool(
     "validate_template_data",
-    "Dry-run slot validation and headless Chromium layout/overflow/WCAG contrast checks without writing any files.",
-    ValidatePostToolSchema.shape,
+    {
+      title: "Validate template data",
+      description:
+        "Dry-run slot validation and headless Chromium layout/overflow/WCAG contrast checks without writing any files.",
+      annotations: readOnlyTool("Validate template data"),
+      inputSchema: ValidatePostToolSchema.shape,
+    },
     ({ templateId, data, size, theme }) =>
       run(async () => {
         const result = await validateTemplatePost({
@@ -131,10 +144,15 @@ export function createTinytldrMcpServer(options?: {
       }),
   );
 
-  server.tool(
+  server.registerTool(
     "preview_post",
-    "Render a fast 1x PNG preview of a post and return both an inline image and layout warnings.",
-    PreviewPostToolSchema.shape,
+    {
+      title: "Preview post",
+      description:
+        "Render a fast 1x PNG preview of a post in memory and return an inline image and layout warnings. No files are stored.",
+      annotations: readOnlyTool("Preview post"),
+      inputSchema: PreviewPostToolSchema.shape,
+    },
     ({ templateId, data, size, theme, pageOrTimestamp }) =>
       run(async () => {
         const preview = await previewTemplatePost({

@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "tinytldr",
   "version": "0.1.0",
-  "description": "Turn notes, articles, changelogs, and diffs into polished social images, PDF carousels, and MP4 videos with the hosted tinytldr MCP server, including your own saved tinytldr designs.",
+  "description": "Generate social images, PDF carousels, and MP4 videos from any content with your saved tinytldr designs, keeping every export consistent with your own layouts.",
   "author": {
     "name": "AJ Rahim",
     "url": "https://www.tinytldr.com"
@@ -15,24 +15,23 @@
     "com.openai": {
       "interface": {
         "displayName": "tinytldr",
-        "shortDescription": "Turn anything into a post",
-        "longDescription": "tinytldr turns source material you share (notes, articles, changelogs, research papers, code diffs) into polished social media assets. The assistant writes the tl;dr copy, and tinytldr renders it deterministically from responsive HTML/CSS templates: PNG, JPEG, and WebP images, multi-page PDF carousels, and MP4 videos in square, portrait, story, X, Open Graph, and LinkedIn sizes.\n\nIt includes 12 built-in templates (quote cards, stat callouts, code snippets, changelog cards, checklists, comparisons, carousels, paper summaries, and animated quote, timeline, and counter videos). After you sign in with your tinytldr account, it can also reuse designs you saved on www.tinytldr.com. Every render checks text overflow and WCAG contrast, and returns a preview with short-lived signed download links.\n\nIntended for developers, founders, researchers, and marketers who want shareable graphics without opening a design tool. Limitations: tinytldr only renders; it does not post to social networks, and it never edits, deletes, or shares your saved designs. Rendering is rate-limited per account.",
+        "shortDescription": "On-brand visuals from any text",
+        "longDescription": "tinytldr turns source material you share (notes, articles, changelogs, research papers, code diffs, metrics) into finished visuals using designs you build on www.tinytldr.com: social posts and carousels, article and Open Graph images, dashboard and report graphics, and more.\n\nDesign your layouts once on the website, then ask the assistant to fill them in. After you sign in with your tinytldr account, it finds your saved designs by name (\"use my Weekly design\"), writes the copy within each page's text limits, and renders the result. Layout, fonts, and colors stay exactly as you designed them, so every export is consistent.\n\nExports: PNG, JPEG, and WebP images, multi-page PDF documents (up to 20 pages), and MP4 videos in square, portrait, story, X, Open Graph, LinkedIn, or custom sizes. Every render checks text overflow and WCAG contrast, and returns a preview with short-lived signed download links.\n\nLimitations: tinytldr only renders. It does not post to social networks, and it never edits, deletes, or shares your saved designs. Rendering is rate-limited per account.",
         "developerName": "AJ Rahim",
         "category": "Creativity",
         "capabilities": [
-          "Render social images",
-          "Render PDF carousels",
-          "Render MP4 videos",
-          "Reuse saved designs"
+          "Generate visuals from content",
+          "Reuse saved designs",
+          "Export images, PDFs, and videos"
         ],
         "websiteURL": "https://www.tinytldr.com",
         "supportURL": "https://github.com/ajrahim/tinytldr/issues",
         "privacyPolicyURL": "https://www.tinytldr.com/privacy",
         "termsOfServiceURL": "https://www.tinytldr.com/terms",
         "defaultPrompt": [
-          "Turn these release notes into a square changelog card.",
-          "Make a LinkedIn PDF carousel that summarizes this article.",
-          "Create a short animated video of this quote."
+          "Use my Weekly design for this week's update.",
+          "Turn this article into images with my Article design.",
+          "Export my Dashboard design as a PDF and an MP4."
         ],
         "brandColor": "#111214",
         "brandColorDark": "#D4F542",
@@ -45,34 +44,34 @@
         "test_cases": {
           "positive": [
             {
-              "description": "Render a changelog card from release notes",
-              "prompt": "Turn these release notes into a square tinytldr changelog card: v2.4 adds dark mode, improves search speed by 40%, and fixes the login timeout.",
-              "tools_triggered": "list_templates, get_template_schema, validate_template_data, render_post",
-              "expected_behavior": "Chooses changelog-card, fills the version and NEW/IMPROVED/FIXED items within slot limits, and returns a 1080x1080 PNG preview with a signed download link."
+              "description": "Find the user's saved designs",
+              "prompt": "What tinytldr designs do I have saved?",
+              "tools_triggered": "list_designs",
+              "expected_behavior": "Lists the test account's saved designs (including Weekly, Article, and Dashboard) with their page titles and sizes, without modifying anything."
             },
             {
-              "description": "Preview a quote card before export",
-              "prompt": "Preview a quote card for \"Simplicity is prerequisite for reliability\" by Edsger Dijkstra, then export it at 2x.",
-              "tools_triggered": "get_template_schema, preview_post, render_post",
-              "expected_behavior": "Shows an inline quote-card preview without layout warnings, then returns a 2x PNG with a signed download link."
-            },
-            {
-              "description": "Build a LinkedIn carousel PDF from an article",
-              "prompt": "Summarize this article into a 5-slide LinkedIn carousel PDF: Remote teams ship faster when they write decisions down, keep meetings short, default to async updates, and review work in small batches.",
-              "tools_triggered": "list_templates, get_template_schema, validate_template_data, render_post",
-              "expected_behavior": "Uses carousel-slides in the portrait size, writes a cover, insight slides, and a CTA within slot limits, and returns one multipage PDF download link."
-            },
-            {
-              "description": "Render an animated stat video",
-              "prompt": "Make a short animated video that counts up to 12,500 weekly active users, up 38% this quarter.",
-              "tools_triggered": "list_templates, get_template_schema, render_post",
-              "expected_behavior": "Uses stat-counter, renders an MP4, and returns its duration, dimensions, preview frame, and signed download link."
-            },
-            {
-              "description": "Reuse the signed-in user's saved design",
-              "prompt": "Use my Weekly template to make this week's update: we launched team workspaces and fixed export bugs.",
+              "description": "Generate a social post from a saved design",
+              "prompt": "Use my Weekly design to make this week's update: we launched team workspaces and fixed export bugs.",
               "tools_triggered": "list_designs, get_design, render_workspace",
-              "expected_behavior": "Finds the saved Weekly design in the test account, keeps its layout and theme, replaces only the page copy within slot limits, and returns a signed download link."
+              "expected_behavior": "Finds the saved Weekly design, keeps its layout and theme, replaces only the page copy within slot limits, and returns a PNG preview with a signed download link."
+            },
+            {
+              "description": "Create article images consistent with a saved design",
+              "prompt": "Make header images for this blog post about remote work using my Article design: remote teams ship faster when they write decisions down and default to async updates.",
+              "tools_triggered": "list_designs, get_design, render_workspace",
+              "expected_behavior": "Uses the saved Article design, writes copy that fits each page's slot limits, and returns image downloads in page order with a preview."
+            },
+            {
+              "description": "Export a saved dashboard design as a PDF",
+              "prompt": "Update my Dashboard design with 12,500 weekly active users, up 38% this quarter, and export it as a PDF.",
+              "tools_triggered": "list_designs, get_design, render_workspace",
+              "expected_behavior": "Fills the saved Dashboard design's metric slots and returns one multipage PDF download link."
+            },
+            {
+              "description": "Export a saved design as a video",
+              "prompt": "Export my Weekly design as a short MP4 video.",
+              "tools_triggered": "list_designs, get_design, render_workspace",
+              "expected_behavior": "Renders the saved Weekly design to MP4 and returns its duration, dimensions, preview frame, and signed download link."
             }
           ],
           "negative": [
@@ -94,7 +93,7 @@
         "commerce_description": "tinytldr does not sell products or process payments."
       },
       "publication": {
-        "release_notes": "Initial release: built-in social image, carousel, and video templates, saved-design reuse, and signed download links from the hosted tinytldr MCP server."
+        "release_notes": "0.1.0: generate images, PDFs, and videos from your saved tinytldr designs, with signed download links from the hosted tinytldr MCP server."
       }
     }
   }

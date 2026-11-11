@@ -90,15 +90,16 @@ export function McpAuthorizationPage() {
         {consent && (
           <>
             <p>
-              <strong>{consent.clientName}</strong> wants access to tinytldr rendering tools.
+              <strong>{consent.clientName}</strong> wants access to your tinytldr designs and
+              rendering tools.
             </p>
             <dl>
               <dt>Returns to</dt>
               <dd>{consent.redirectOrigin}</dd>
               <dt>Permissions</dt>
               <dd>
-                Validate, preview and export designs supplied by your agent. No access to your saved
-                website designs or provider keys.
+                Read your saved designs, and validate, preview and export designs. Cannot edit,
+                delete or share your saved designs, and no access to your AI provider keys.
               </dd>
               <dt>Downloads</dt>
               <dd>
